@@ -7,8 +7,10 @@ defmodule BoomWeb.GameLive do
     ~H"""
     Current user: <%= @current_user %>
 
-    <br/>
-    game state: <pre> <%= inspect(@game, pretty: true) %> </pre>
+     <br/>
+    <div style="overflow-y: scroll; height: 50em;"> game state: <pre> <%= inspect(@game, pretty: true) %> </pre>
+    </div>
+    <button phx-click="next_round">Next round</button>
     <div class="w-10/12 grid justify-center m-auto">
     <div class="grid grid-cols-10 grid-rows-10 gap-4 ">
     <%= for row <- 10..1 do %>
@@ -30,12 +32,6 @@ defmodule BoomWeb.GameLive do
     current_user =
       if connected?(socket) do
         current_user = :rand.uniform(1000)
-
-        # {:ok, _} =
-        #   Boom.Presence.track(self(), presence(game_id), current_user, %{
-        #     user: current_user
-        #   })
-
         # Phoenix.PubSub.subscribe(Boom.PubSub, presence(game_id))
         Boom.GameServer.join_and_subscribe_me!(game_id, current_user)
         current_user
@@ -71,6 +67,14 @@ defmodule BoomWeb.GameLive do
      )}
   end
 
+  def handle_event("next_round", _payload, socket) do
+    Boom.GameServer.command(socket.assigns.game_id, socket.assigns.current_user, %{
+      cmd: :next_round
+    })
+
+    {:noreply, socket}
+  end
+
   def handle_event("click", %{"cell" => cell_coordinates}, socket) do
     [col, row] =
       cell_coordinates
@@ -80,8 +84,11 @@ defmodule BoomWeb.GameLive do
         x
       end)
 
-    IO.inspect(col)
-    IO.inspect(row)
+    Boom.GameServer.command(socket.assigns.game_id, socket.assigns.current_user, %{
+      cmd: :move,
+      to: [col, row]
+    })
+
     {:noreply, socket}
   end
 

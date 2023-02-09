@@ -66,6 +66,11 @@ defmodule Boom.GameServer do
     end
   end
 
+  def command(game_id, username, command) do
+    process_name_tuple(game_id)
+    |> GenServer.call({:command, username, command})
+  end
+
   ########################################################################
   # GenServer handlers
   ########################################################################
@@ -79,16 +84,16 @@ defmodule Boom.GameServer do
   end
 
   def handle_call({:command, username, cmd}, _, %{game: game, players: players} = state) do
-    case Enum.find(players, fn %{username: ^username, id: id} -> id end) do
+    case Enum.find(players, fn %{username: ^username} -> username end) do
       nil ->
         {:reply, {:error, :not_a_player}, state}
 
-      id ->
+      %{id: id} ->
         command = Map.put(cmd, :player_id, id)
 
         case Boom.Game.command(game, command) do
           {:ok, new_game} ->
-            broadcast_state(game)
+            broadcast_game(new_game)
             {:reply, :ok, %{state | game: new_game}}
 
           {:error, reason} ->
@@ -117,8 +122,8 @@ defmodule Boom.GameServer do
   # PubSub functions
   ########################################################################
 
-  def broadcast_state(state) do
-    Phoenix.PubSub.broadcast(Boom.PubSub, "game/#{state.game_id}", {:new_game_state, state})
+  def broadcast_game(game) do
+    Phoenix.PubSub.broadcast(Boom.PubSub, "game/#{game.game_id}", {:new_game_state, game})
   end
 
   ########################################################################
@@ -127,15 +132,15 @@ defmodule Boom.GameServer do
 
   def init(opts) do
     Process.flag(:trap_exit, true)
-    {:ok, %{game: %Boom.Game{game_id: Keyword.fetch!(opts, :game_id)}, players: []}, @timeout}
+    {:ok, %{game: Boom.Game.new_game(Keyword.fetch!(opts, :game_id)), players: []}, @timeout}
   end
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: Keyword.get(opts, :name, __MODULE__))
   end
 
-  def handle_info({:EXIT, _from, reason}, %Boom.Game{} = state) do
-    IO.inspect("#{state.game_id} Stopped with reason #{inspect(reason)}")
+  def handle_info({:EXIT, _from, reason}, state) do
+    IO.inspect("#{state.game.game_id} Stopped with reason #{inspect(reason)}")
     {:stop, reason, state}
   end
 

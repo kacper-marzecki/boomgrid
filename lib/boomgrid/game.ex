@@ -1,22 +1,6 @@
 defmodule Boom.Game do
   alias Boom.Game.Round
 
-  defstruct players: [],
-            game_id: nil,
-            # cached fields
-            blocks: [],
-            rounds: [%Round{}],
-            spells: [
-              %{
-                moves: [[0, 2], [0, 4]],
-                effects: [
-                  %{type: :block, position: [-1, 6]},
-                  %{type: :block, position: [0, 6]},
-                  %{type: :block, position: [1, 6]}
-                ]
-              }
-            ]
-
   defmodule Round do
     defstruct player_moves: %{},
               # the rest is filled in at the end of the round
@@ -26,27 +10,63 @@ defmodule Boom.Game do
               effects: []
   end
 
-  # def join(%__MODULE__{players: players} = game, opaque_player_data) do
-  #   can_join? = Enum.member?(players, opaque_player_data) || length(players) < 2
+  defstruct game_id: nil,
+            # cached fields
+            rounds: [%{__struct__: Boom.Game.Round}],
+            spells: [
+              %{
+                moves: [[0, 2], [0, 4]],
+                effects: [
+                  %{type: :wall, points: {[-1, 6], [1, 6]}}
+                ]
+              }
+            ]
 
-  #   if can_join? do
-  #     {:ok, %{game | players: [opaque_player_data | players]}
-  #   else
-  #     {:error, game}
-  #   end
-  # end
+  def new_game(game_id) do
+    IO.inspect(game_id, label: "#######################################################")
+
+    %__MODULE__{
+      game_id: game_id,
+      # cached fields
+      rounds: [%Boom.Game.Round{}],
+      spells: [
+        %{
+          moves: [[0, 2], [0, 4]],
+          effects: [
+            %{type: :wall, points: {[-1, 6], [1, 6]}}
+          ]
+        }
+      ]
+    }
+  end
 
   def rotate([x, y], [cos_o, sin_o] = _rotation_matrix) do
     [x * cos_o - y * sin_o, x * sin_o + y * cos_o]
+  end
+
+  def dot([x1, y1], [x2, y2]) do
+    x1 * x2 + y1 * y2
+  end
+
+  def wedge([x1, y1], [x2, y2]) do
+    x1 * y2 - y1 * x2
+  end
+
+  def minus([a, b], [c, d]) do
+    [a - c, b - d]
+  end
+
+  def is_between(a, b, c) do
+    v = minus(a, b)
+    w = minus(b, c)
+    wedge(v, w) == 0 and dot(v, w) > 0
   end
 
   def test do
     %{
       moves: [[0, 2], [0, 4]],
       effects: [
-        %{type: :block, position: [-1, 6]},
-        %{type: :block, position: [0, 6]},
-        %{type: :block, position: [1, 6]}
+        %{type: :wall, points: {[-1, 6], [1, 6]}}
       ]
     }
     |> rotations()
@@ -64,7 +84,12 @@ defmodule Boom.Game do
         moves = Enum.map(moves, fn move -> rotate(move, rotation_matrix) end)
 
         effects =
-          Enum.map(effects, fn eff -> %{eff | position: rotate(eff.position, rotation_matrix)} end)
+          Enum.map(effects, fn eff ->
+            case eff do
+              %{type: :wall, points: {a, b}} ->
+                %{eff | points: {rotate(a, rotation_matrix), rotate(b, rotation_matrix)}}
+            end
+          end)
 
         %{spell | moves: moves, effects: effects}
       end)
@@ -78,7 +103,12 @@ defmodule Boom.Game do
     moves = Enum.map(moves, fn move -> add_position_vecs(move, position) end)
 
     effects =
-      Enum.map(effects, fn eff -> %{eff | position: add_position_vecs(eff.position, position)} end)
+      Enum.map(effects, fn eff ->
+        case eff do
+          %{type: :wall, points: {a, b}} ->
+            %{eff | points: {add_position_vecs(a, position), add_position_vecs(b, position)}}
+        end
+      end)
 
     %{spell | moves: moves, effects: effects}
     |> Map.put(:anchor, position)
@@ -92,21 +122,54 @@ defmodule Boom.Game do
         # check if player can move like that,
         # check for collisions
         new_round = %{round | player_moves: Map.put(round.player_moves, player_id, destination)}
-        {:ok, %{game | List.replace_at(0, new_round)}}
+        {:ok, %{game | rounds: List.replace_at(game.rounds, 0, new_round)}}
 
       %{cmd: :next_round} ->
         %Round{} = round = hd(game.rounds)
         # TODO
-        # spells
-        # find which spells are triggered by the new moves
-        # generate spells for the new position the players are in
         # render new board
         # this doesnt have to he exactly whats displayed, x, y stay the same, regardless of the rendered map;
-        Enum.map(round.player_moves, fn {player_id, move} ->
-          nil
-        end)
+        spells =
+          Map.new(round.player_moves, fn {player_id, move} ->
+            # generate spells for the new position the players are in
+            new_spells =
+              game.spells
+              |> Enum.flat_map(fn spell -> rotations(spell) end)
+              |> Enum.map(fn spell -> anchor(spell, move) end)
 
-        next_round = %Round{}
+            # find which spells are triggered by the new moves
+            spells_after_moving =
+              Map.get(round.spells, player_id, [])
+              |> Enum.flat_map(fn spell ->
+                case spell.moves do
+                  [^move | next_moves] -> [%{spell | moves: next_moves}]
+                  _other -> []
+                end
+              end)
+
+            {player_id, Enum.concat(spells_after_moving, new_spells)}
+          end)
+
+        # find which spells are triggered by the new moves
+        effects =
+          Enum.flat_map(spells, fn {player_id, player_spells} ->
+            Enum.flat_map(player_spells, fn spell ->
+              case spell do
+                # ready to cast, no more moves remaining
+                %{moves: [], effects: effects} ->
+                  Enum.map(effects, fn eff -> Map.put(eff, :player_id, player_id) end)
+
+                _ ->
+                  []
+              end
+            end)
+          end)
+
+        next_round = %Round{
+          spells: spells,
+          effects: effects
+        }
+
         {:ok, %{game | rounds: [next_round | game.rounds]}}
 
       %{cmd: :attack, target: target} ->
@@ -117,14 +180,22 @@ defmodule Boom.Game do
     end
   end
 
-  def block do
-    %{
-      player: 1,
-      start: [2, 5]
-    }
+  # TODO NEXT - game_live.ex render if a point is a wall
+  def wall?(%__MODULE__{rounds: [round | _]}, x, y) do
+    Enum.any?(round.effects, fn
+      %{type: :wall, points: {a, b}, player_id: _player_id} ->
+        is_between(a, b, [x, y])
+    end)
   end
 
-  def can_move?(%__MODULE__{players: players} = game, player, destination) do
-    game.blocks
+  # def block do
+  #   %{
+  #     player: 1,
+  #     start: [2, 5]
+  #   }
+  # end
+
+  def can_move?(%__MODULE__{rounds: [round | _]} = game, player, destination) do
+    # TODO could a player be able to pass through his own walls ?
   end
 end
