@@ -48,12 +48,13 @@ defmodule Boom.GameServer do
 
   # API for processes to join the game with a username
   def join_and_subscribe_me!(game_id, username) do
-    with :ok <-
+    with {:ok, player_id} <-
            GenServer.call(
              process_name_tuple(game_id),
              {:join, username}
            ) do
       :ok = Phoenix.PubSub.subscribe(Boom.PubSub, "game/#{game_id}")
+      {:ok, player_id}
     end
   end
 
@@ -80,11 +81,11 @@ defmodule Boom.GameServer do
     player_id = Enum.max_by(players, fn player -> player.id end, fn -> 0 end) + 1
     players = [%{id: player_id, username: username, pid: pid} | players]
     Process.monitor(pid)
-    {:reply, :ok, %{state | players: players}}
+    {:reply, {:ok, player_id}, %{state | players: players}}
   end
 
-  def handle_call({:command, username, cmd}, _, %{game: game, players: players} = state) do
-    case Enum.find(players, fn %{username: ^username} -> username end) do
+  def handle_call({:command, player_id, cmd}, _, %{game: game, players: players} = state) do
+    case Enum.find(players, fn %{id: id} -> player_id == id end) do
       nil ->
         {:reply, {:error, :not_a_player}, state}
 

@@ -167,7 +167,7 @@ defmodule Boom.Game do
 
         next_round = %Round{
           spells: spells,
-          effects: effects
+          effects: round.effects ++ effects
         }
 
         {:ok, %{game | rounds: [next_round | game.rounds]}}
