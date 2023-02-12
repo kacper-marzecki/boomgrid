@@ -9,7 +9,9 @@ defmodule BoomWeb.GameLive do
       <div>
         Current user: <%= @current_user %>
         <br/>
-        <div style="overflow-y: scroll; height: 50em;"> game state: 
+        PlayerId: <%= @player_id %>
+        <br/>
+        <div style="overflow-y: scroll; height: 50em;"> game state:
           <pre> <%= inspect(@game, pretty: true) %> </pre>
         </div>
         <button phx-click="next_round">Next round</button>
@@ -19,10 +21,11 @@ defmodule BoomWeb.GameLive do
     <%= for row <- 10..1 do %>
       <%= for col <- 1..10 do %>
         <div
-          class={"border-2 border-sky-500 w-16 h-16 justify-center items-center flex #{field_class(@game, col, row, @player_id)}"}
+          class={"border-2 border-sky-500 w-16 h-16 justify-center items-center flex cursor-pointer #{field_class(@game, col, row, @player_id)}"}
         phx-click="click"
         phx-value-cell={"#{col},#{row}"}>
-          <%= col %> <%= row %>
+          <span style=""> <%= col %> <%= row %> </span>
+          <span :if={@click == [col, row]}>CLICK</span>
         <span :if={Boom.Game.wall?(@game, col, row)}>BLOCK</span>
         </div>
       <% end %>
@@ -39,14 +42,15 @@ defmodule BoomWeb.GameLive do
         current_user = :rand.uniform(1000)
         # Phoenix.PubSub.subscribe(Boom.PubSub, presence(game_id))
         {:ok, player_id} = Boom.GameServer.join_and_subscribe_me!(game_id, current_user)
+
         {current_user, player_id}
       else
         {nil, nil}
       end
 
-
     socket =
       socket
+      |> assign(click: nil)
       |> assign(game_id: game_id, current_user: current_user, player_id: player_id)
       |> assign_game()
 
@@ -87,7 +91,7 @@ defmodule BoomWeb.GameLive do
           cmd: :next_round
         })
 
-        {:noreply, put_flash(socket, :info, "Next round")}
+        {:noreply, put_flash(socket, :info, "Next round") |> assign(click: nil)}
 
       _ ->
         {:noreply, socket}
@@ -118,7 +122,7 @@ defmodule BoomWeb.GameLive do
       to: [col, row]
     })
 
-    {:noreply, socket}
+    {:noreply, socket |> assign(click: [col, row])}
   end
 
   def handle_event(event, payload, socket) do

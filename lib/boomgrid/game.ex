@@ -23,17 +23,21 @@ defmodule Boom.Game do
             ]
 
   def new_game(game_id) do
-    IO.inspect(game_id, label: "#######################################################")
-
     %__MODULE__{
       game_id: game_id,
       # cached fields
       rounds: [%Boom.Game.Round{}],
       spells: [
         %{
-          moves: [[0, 2], [0, 4]],
+          moves: [[0, 2], [1, 2]],
           effects: [
             %{type: :wall, points: {[-1, 6], [1, 6]}}
+          ]
+        },
+        %{
+          moves: [[0, 2]],
+          effects: [
+            %{type: :wall, points: {[-1, 3], [1, 3]}}
           ]
         }
       ]
@@ -48,18 +52,14 @@ defmodule Boom.Game do
     x1 * x2 + y1 * y2
   end
 
-  def wedge([x1, y1], [x2, y2]) do
-    x1 * y2 - y1 * x2
-  end
-
-  def minus([a, b], [c, d]) do
-    [a - c, b - d]
+  def distance([a, b], [c, d]) do
+    :math.sqrt(:math.pow(a - c, 2) + :math.pow(b - d, 2))
   end
 
   def is_between(a, b, c) do
-    v = minus(a, b)
-    w = minus(b, c)
-    wedge(v, w) == 0 and dot(v, w) > 0
+    d = distance(a, c) + distance(c, b)
+    segment = distance(a, b)
+    abs(segment - d) < 0.01
   end
 
   def test do
