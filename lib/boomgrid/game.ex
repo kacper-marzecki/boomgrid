@@ -188,6 +188,13 @@ defmodule Boom.Game do
     end)
   end
 
+  def player_position?(%__MODULE__{rounds: [round | _]}, player, x, y) do
+    case Map.get(round.player_moves, player) do
+      [^x, ^y] -> true
+      _ -> false
+    end
+  end
+
   # def block do
   #   %{
   #     player: 1,

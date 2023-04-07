@@ -18,6 +18,7 @@ defmodule BoomWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    live "/board", BoardLive
     live "/games", GamesLive
     live "/game/:game_id", GameLive
   end

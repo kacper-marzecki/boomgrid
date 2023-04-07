@@ -77,9 +77,11 @@ defmodule Boom.GameServer do
   # TODO: handle  n-player restrictions, spectators, modifications to the game  after joining, but before starting
 
   def handle_call({:join, username}, {pid, _}, %{players: players} = state) do
-    player_id = Enum.map(players, fn player -> player.id end)
-    |> Enum.max(fn -> 0 end)
-    |> Kernel.+(1)
+    player_id =
+      Enum.map(players, fn player -> player.id end)
+      |> Enum.max(fn -> 0 end)
+      |> Kernel.+(1)
+
     # player_id = Enum.max_by(players, fn player -> player.id end, fn -> 0 end) + 1
     players = [%{id: player_id, username: username, pid: pid} | players]
     Process.monitor(pid)

@@ -11,14 +11,14 @@ module.exports = {
   ],
   theme: {
     extend: {
-      gridTemplateCols: {
-        // Simple 10 row grid
-        '10': 'repeat(10 , minmax(0, 1fr))',
-      },
-      gridTemplateRows: {
-        // Simple 10 row grid
-        '10': 'repeat(10 , minmax(0, 1fr))',
-      }
+      // gridTemplateCols: {
+      //   // Simple 10 row grid
+      //   '10': 'repeat(10 , minmax(0, 1fr))',
+      // },
+      // gridTemplateRows: {
+      //   // Simple 10 row grid
+      //   '10': 'repeat(10 , minmax(0, 1fr))',
+      // }
     },
   },
   plugins: [

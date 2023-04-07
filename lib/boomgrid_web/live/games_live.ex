@@ -4,10 +4,10 @@ defmodule BoomWeb.GamesLive do
   def render(assigns) do
     ~H"""
     <ul>
-     <li :for={game <-  @games}>
-     <%= game %>
-        | <button phx-click="go_to_game" phx-value-game_id={game}>go to</button>
-        | <button class="text-red-600" phx-click="kill_game" phx-value-game_id={game} >kill</button></li>
+      <li :for={game <- @games}>
+        <%= game %> | <button phx-click="go_to_game" phx-value-game_id={game}>go to</button>
+        | <button class="text-red-600" phx-click="kill_game" phx-value-game_id={game}>kill</button>
+      </li>
     </ul>
     <button phx-click="new_game">New game</button>
     """
