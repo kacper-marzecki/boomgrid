@@ -37,13 +37,13 @@ defmodule BoomWeb.UserAuth do
   """
   def log_out_user(conn) do
     if live_socket_id = get_session(conn, :live_socket_id) do
-      SkrzatWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
+      BoomWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     conn
     |> renew_session()
     |> delete_resp_cookie(@remember_me_cookie)
-    |> redirect(to: "/users/log_in")
+    |> redirect(to: "/")
   end
 
   @doc """
