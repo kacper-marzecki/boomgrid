@@ -4,14 +4,18 @@ defmodule BoomWeb.BoardLive do
 
   def render(assigns) do
     ~H"""
-    <link phx-track-static rel="stylesheet" href={Routes.static_path(@socket, "/assets/rpgui.css")} />
+    <%!-- <link
+      phx-track-static
+      rel="stylesheet"
+      href={Routes.static_path(@socket, "/assets/rpgui/rpgui.css")}
+    />
     <script
       defer
       phx-track-static
       type="text/javascript"
-      src={Routes.static_path(@socket, "/assets/rpgui.js")}
+      src={Routes.static_path(@socket, "/assets/rpgui/rpgui.js")}
     >
-    </script>
+    </script> --%>
     <style>
         .rpgui-content {
           position: unset;

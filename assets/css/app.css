@@ -1,6 +1,7 @@
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
+@import "../rpgui/rpgui.css";
 
 /* This file is for your main application CSS */
 
