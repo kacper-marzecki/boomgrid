@@ -9,6 +9,7 @@ defmodule BoomWeb.Router do
     plug :put_root_layout, {BoomWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :fetch_current_user
 
     if Mix.env() == :dev do
       plug :set_random_user
@@ -28,7 +29,8 @@ defmodule BoomWeb.Router do
 
   scope "/", BoomWeb do
     pipe_through([:browser, :require_authenticated_user])
-
+    import Phoenix.LiveDashboard.Router
+    live_dashboard "/dashboard", metrics: BoomWeb.Telemetry
     live "/board", BoardLive
     live "/games", GamesLive
     live "/game/:game_id", GameLive
@@ -46,15 +48,6 @@ defmodule BoomWeb.Router do
   # If your application does not have an admins-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
-    import Phoenix.LiveDashboard.Router
-
-    scope "/" do
-      pipe_through :browser
-
-      live_dashboard "/dashboard", metrics: BoomWeb.Telemetry
-    end
-  end
 
   def set_random_user(conn, opts) do
     Plug.Conn.assign(conn, :current_user, UUID.uuid4())

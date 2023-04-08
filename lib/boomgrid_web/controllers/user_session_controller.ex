@@ -21,6 +21,7 @@ defmodule BoomWeb.UserSessionController do
          {:ok, claims} <- OpenIDConnect.verify(:keycloak, tokens["id_token"]) do
       username = claims["preferred_username"]
       Logger.info("claims: #{inspect(claims)}")
+      Logger.info("preferred_username: #{inspect(claims)}")
 
       conn
       |> Plug.Conn.put_session(:current_user, username)
