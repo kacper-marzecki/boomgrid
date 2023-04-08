@@ -7,25 +7,24 @@ defmodule Boom.Application do
 
   @impl true
   def start(_type, _args) do
-    open_id_connect_worker =
-      if Mix.env() == :prod do
-        [{OpenIDConnect.Worker, Application.get_env(:boomgrid, :openid_connect_providers)}]
-      else
-        []
-      end
+    # open_id_connect_worker =
+    #     [{OpenIDConnect.Worker, Application.get_env(:boomgrid, :openid_connect_providers)}]
+    #   else
+    #     []
+    #   end
 
-    children =
-      [
-        # Start the Telemetry supervisor
-        BoomWeb.Telemetry,
-        # Start the PubSub system
-        {Phoenix.PubSub, name: Boom.PubSub},
-        Boom.Presence,
-        # Start the Endpoint (http/https)
-        BoomWeb.Endpoint,
-        {Registry, keys: :unique, name: Boom.GameRegistry},
-        {DynamicSupervisor, strategy: :one_for_one, name: Boom.GameSupervisor}
-      ] ++ open_id_connect_worker
+    children = [
+      # Start the Telemetry supervisor
+      BoomWeb.Telemetry,
+      # Start the PubSub system
+      {Phoenix.PubSub, name: Boom.PubSub},
+      Boom.Presence,
+      # Start the Endpoint (http/https)
+      BoomWeb.Endpoint,
+      {Registry, keys: :unique, name: Boom.GameRegistry},
+      {DynamicSupervisor, strategy: :one_for_one, name: Boom.GameSupervisor},
+      {OpenIDConnect.Worker, Application.get_env(:boomgrid, :openid_connect_providers, [])}
+    ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
