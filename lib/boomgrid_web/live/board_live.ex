@@ -149,13 +149,11 @@ defmodule BoomWeb.BoardLive do
   end
 
   def mount(_params, _session, socket) do
-    Process.send_after(self(), :moveBackground, 1000)
     entities = mock_entities()
 
     {:ok,
      socket
      |> assign(
-       backgroundPosition: 0,
        viewport_anchor: %{x: 0, y: 0, z: 0},
        viewport_size:
          entities |> Enum.map(fn entity -> entity[:sprite][:size] || 0 end) |> Enum.max(),
@@ -164,11 +162,6 @@ defmodule BoomWeb.BoardLive do
        # :move
        mode: :normal
      )}
-  end
-
-  def handle_info(:moveBackground, socket) do
-    Process.send_after(self(), :moveBackground, 1000)
-    {:noreply, assign(socket, backgroundPosition: socket.assigns.backgroundPosition + 10)}
   end
 
   def handle_event(
