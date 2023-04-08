@@ -20,6 +20,4 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
   * Source: https://github.com/phoenixframework/phoenix
 
 needed environment vars: 
-KEYCLOAK_CLIENT_ID
-KEYCLOAK_CLIENT_SECRET
-APP_URL
+dokku config:set boomgrid KEYCLOAK_CLIENT_ID KEYCLOAK_CLIENT_SECRET  APP_URL
