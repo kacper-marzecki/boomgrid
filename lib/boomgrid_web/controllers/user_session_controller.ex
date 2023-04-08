@@ -27,7 +27,9 @@ defmodule BoomWeb.UserSessionController do
       |> Plug.Conn.put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(code)}")
       |> redirect(to: "/")
     else
-      _ ->
+      other ->
+        IO.inspect(other, label: "OTHER AUTH RESPONSE")
+
         conn
         |> put_flash(:error, "Unrecognized user.")
         |> redirect(to: "/")
