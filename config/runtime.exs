@@ -21,6 +21,17 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  config :boomgrid, :openid_connect_providers,
+    keycloak: [
+      discovery_document_uri:
+        "https://keycloak.fubar.online/auth/realms/booomgrid/.well-known/uma2-configuration",
+      client_id: System.get_env("KEYCLOAK_CLIENT_ID"),
+      client_secret: System.get_env("KEYCLOAK_CLIENT_SECRET"),
+      redirect_uri: (System.get_env("APP_URL") || "http://localhost:4000") <> "/session",
+      response_type: "code",
+      scope: "openid email profile"
+    ]
+
   # The secret key base is used to sign/encrypt cookies and other secrets.
   # A default value is used in config/dev.exs and config/test.exs but you
   # want to use a different value for prod and you most likely don't want

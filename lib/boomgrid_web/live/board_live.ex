@@ -163,26 +163,26 @@ defmodule BoomWeb.BoardLive do
     #   {:move, moving_entity_id} ->
     # end
 
-    clicked_entity =
-      case entity do
+    selected_entity_id =
+      case clicked_entity do
         %{selectable: true} -> id
         _ -> nil
       end
 
     # mutacja to zguba wszystkiego
     # pora na ecs
-    maybe_moved_to =
-      case selected_entity do
-        nil ->
-          nil
-      end
+    # maybe_moved_to =
+    #   case selected_entity do
+    #     nil ->
+    #       nil
+    #   end
 
-    case entity do
-      %{selectable: true} -> id
-      _ -> nil
-    end
+    # case entity do
+    #   %{selectable: true} -> id
+    #   _ -> nil
+    # end
 
-    {:noreply, socket |> assign(selected_entity: selected_entity)}
+    {:noreply, socket |> assign(selected_entity: selected_entity_id)}
   end
 
   def handle_event("map_move_clicked", %{"direction" => direction}, socket) do

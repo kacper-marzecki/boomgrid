@@ -1,5 +1,6 @@
 defmodule BoomWeb.Router do
   use BoomWeb, :router
+  import BoomWeb.UserAuth
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -8,6 +9,10 @@ defmodule BoomWeb.Router do
     plug :put_root_layout, {BoomWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+
+    if Mix.env() == :dev do
+      plug :set_random_user
+    end
   end
 
   pipeline :api do
@@ -16,8 +21,14 @@ defmodule BoomWeb.Router do
 
   scope "/", BoomWeb do
     pipe_through :browser
+    get("/", PageController, :index)
+    get("/session", UserSessionController, :create)
+    get("/session/authorization-uri", UserSessionController, :authorization_uri)
+  end
 
-    get "/", PageController, :index
+  scope "/", BoomWeb do
+    pipe_through([:browser, :require_authenticated_user])
+
     live "/board", BoardLive
     live "/games", GamesLive
     live "/game/:game_id", GameLive
@@ -43,5 +54,9 @@ defmodule BoomWeb.Router do
 
       live_dashboard "/dashboard", metrics: BoomWeb.Telemetry
     end
+  end
+
+  def set_random_user(conn, opts) do
+    Plug.Conn.assign(conn, :current_user, UUID.uuid4())
   end
 end
