@@ -24,6 +24,7 @@ defmodule BoomWeb.Router do
     pipe_through :browser
     get("/", PageController, :index)
     get("/session", UserSessionController, :create)
+    get("/session/delete", UserSessionController, :delete)
     get("/session/authorization-uri", UserSessionController, :authorization_uri)
   end
 
