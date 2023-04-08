@@ -30,7 +30,8 @@ let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   metadata: {
     click: (e, el) => {
-      var boundingRect = el.getBoundingClientRect();
+      // var boundingRect = el.getBoundingClientRect();
+      var boundingRect = document.getElementById("board").getBoundingClientRect();
       var browserX = e.clientX - boundingRect.x;
       var browserY = e.clientY - boundingRect.y;
       return {
