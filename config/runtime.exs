@@ -24,7 +24,7 @@ if config_env() == :prod do
   config :boomgrid, :openid_connect_providers,
     keycloak: [
       discovery_document_uri:
-        "https://keycloak.fubar.online/auth/realms/booomgrid/.well-known/uma2-configuration",
+        "https://keycloak.fubar.online/auth/realms/boomgrid/.well-known/openid-configuration",
       client_id: System.get_env("KEYCLOAK_CLIENT_ID"),
       client_secret: System.get_env("KEYCLOAK_CLIENT_SECRET"),
       redirect_uri: (System.get_env("APP_URL") || "http://localhost:4000") <> "/session",
@@ -44,7 +44,7 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host = System.get_env("APP_URL") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
   config :boomgrid, BoomWeb.Endpoint,
