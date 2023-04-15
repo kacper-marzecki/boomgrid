@@ -8,12 +8,23 @@ defmodule BoomWeb.AnkhLive do
     <%= inspect(assigns, pretty: true) %>
     </pre>
     <style>
+        .card {
+          transition: transform .2s;
+          display: inline-block;
+          height: 100%;
+        }
+        .card:hover {
+          transform: scale(3);
+      }
+      .rpgui-content * {
+        image-rendering: unset;
+      }
     </style>
     <div class="rpgui-content" phx-window-keyup="key_clicked">
       <div class="grid grid-cols-2" style="height: 100vh;">
-        <div class="rpgui-container framed" style="height: 90vh; width: 90vh;">
+        <div class="rpgui-container framed" style="height: 90vh; width: 90vh; ">
           <%!-- UI  --%>
-          <div style="height: 80%;">
+          <div style="height: 58%;">
             <%!-- Gracze  --%>
             <div class="rpgui-container framed-grey w-1/4" style="float: left;">
               <%!-- Jeden gracz  --%>
@@ -24,42 +35,69 @@ defmodule BoomWeb.AnkhLive do
                 </p>
               </div>
             </div>
-            <div class="rpgui-container framed-grey w-3/4 " style="float: left;">
-              <p>gracze</p>
+            <div class="rpgui-container framed-grey w-3/4 h-full" style="float: left;">
+              <div style="height: 90%;">
+                <p>menu</p>
+              </div>
+              <div style="height: 10%;">
+                <button type="button" class="rpgui-button" phx-click={show_tab("karty")}>
+                  <p>karty</p>
+                </button>
+                <button type="button" class="rpgui-button" phx-click={show_tab("pionki")}>
+                  <p>pionki</p>
+                </button>
+                <button type="button" class="rpgui-button" phx-click={show_tab("akcje")}>
+                  <p>akcja</p>
+                </button>
+              </div>
             </div>
+          </div>
+          <%!-- aktualna tura ? --%>
+          <hr />
+          <div style="overflow-x: scroll; overflow-y: visible; height: 20%;  white-space: nowrap;  ">
+            <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
           </div>
           <%!-- Reka gracza  --%>
           <hr />
-          <div style="overflow-x: scroll;  height: 20%;  white-space: nowrap;  ">
+          <div style="overflow-x: scroll;  overflow-y: visible; height: 20%;  white-space: nowrap;  ">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <img style="display: inline-block;  height: 100%; " src="/images/action_1.png" />
-            <img style="display: inline-block;  height: 100%; " src="/images/action_1.png" />
-            <img style="display: inline-block;  height: 100%; " src="/images/action_1.png" />
-            <img style="display: inline-block;  height: 100%; " src="/images/action_1.png" />
-            <img style="display: inline-block;  height: 100%; " src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
+            <img class="card" src="/images/action_1.png" />
           </div>
         </div>
         <div
           class="rpgui-container framed"
           style="
-        height: 90vh;
-        width: 90vh;
-        overflow: hidden;
-        "
+            height: 90vh;
+            width: 90vh;
+            overflow: hidden;
+            "
         >
           <div
             id="board"
             style="
-        height: 100%;
-        width: 100%;
-        /* do ustawiania `position: absolute` elementow */
-        position: relative;
-        /* żeby częściowo widoczne elementy były obcinane */
-        overflow: hidden;
-        /* background */
-        background-image: url('/images/floor.png');
-        background-repeat: repeat;
-      "
+            height: 100%;
+            width: 100%;
+            /* do ustawiania `position: absolute` elementow */
+            position: relative;
+            /* żeby częściowo widoczne elementy były obcinane */
+            overflow: hidden;
+            /* background */
+            background-image: url('/images/floor.png');
+            background-repeat: repeat;
+          "
           >
             <%= for entity <- @entities do %>
               <%= to_html(entity, @viewport_anchor, @viewport_size, @selected_entity_id) %>
@@ -116,6 +154,17 @@ defmodule BoomWeb.AnkhLive do
       _ ->
         nil
     end
+  end
+
+  def show_tab(tab) do
+    tabs = ["karty", "pionki", "akcje"]
+    tabs_to_hide = Enum.filter(tabs, &(&1 != tab))
+    js = JS.show(to: "##{tab}")
+
+    tabs_to_hide
+    |> Enum.reduce(js, fn tab_to_hide, js ->
+      JS.hide(js, to: "##{tab_to_hide}")
+    end)
   end
 
   def mount(_params, _session, socket) do
