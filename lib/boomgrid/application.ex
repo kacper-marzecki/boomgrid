@@ -16,6 +16,7 @@ defmodule Boom.Application do
     children = [
       # Start the Telemetry supervisor
       BoomWeb.Telemetry,
+      Boom.Repo,
       # Start the PubSub system
       {Phoenix.PubSub, name: Boom.PubSub},
       Boom.Presence,

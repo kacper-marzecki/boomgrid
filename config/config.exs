@@ -7,6 +7,15 @@
 # General application configuration
 import Config
 
+config :boomgrid, Boom.Repo,
+  database: "boomgrid_repo",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  port: 5433
+
+config :boomgrid, ecto_repos: [Boom.Repo]
+
 config :boomgrid,
   namespace: Boom
 

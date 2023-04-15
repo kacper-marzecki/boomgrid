@@ -163,3 +163,22 @@
   background: url('/images/floor.png') no-repeat;
   background-size: contain;
 }
+
+
+.rpgui-content {
+  position: unset;
+}
+.rpgui-container {
+  position: unset;
+}
+
+.shimmer {
+  -webkit-mask:linear-gradient(-60deg,#000 30%,#0005,#000 70%) right/350% 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.5s infinite;
+  background-color: white;
+}
+
+@keyframes shimmer {
+ 100% {-webkit-mask-position:left}
+}

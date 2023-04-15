@@ -21,6 +21,8 @@ if System.get_env("PHX_SERVER") do
 end
 
 if config_env() == :prod do
+  config :boomgrid, Boom.Repo, url: System.get_env("DATABASE_URL")
+
   config :boomgrid, :openid_connect_providers,
     keycloak: [
       discovery_document_uri:

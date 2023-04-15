@@ -781,8 +781,17 @@ ul.rpgui-list-imp {
   text-decoration: none;
 }
 
+.rpgui-content .rpgui-link {
+  /* color and border */
+  color: yellow;
+  text-shadow: -2px 0 black, 0 2px black, 2px 0 black, 0 -2px black;
+  font-size: 1.0em;
+  line-height: 22px;
+  text-decoration: none;
+}
+
 /* default gui link */
-.rpgui-content a:hover {
+.rpgui-content .rpgui-link:hover {
   text-decoration: underline;
 }
 

@@ -4,37 +4,6 @@ defmodule BoomWeb.BoardLive do
 
   def render(assigns) do
     ~H"""
-    <%!-- <link
-      phx-track-static
-      rel="stylesheet"
-      href={Routes.static_path(@socket, "/assets/rpgui/rpgui.css")}
-    />
-    <script
-      defer
-      phx-track-static
-      type="text/javascript"
-      src={Routes.static_path(@socket, "/assets/rpgui/rpgui.js")}
-    >
-    </script> --%>
-    <style>
-        .rpgui-content {
-          position: unset;
-        }
-        .rpgui-container {
-          position: unset;
-        }
-
-        .shimmer {
-          -webkit-mask:linear-gradient(-60deg,#000 30%,#0005,#000 70%) right/350% 100%;
-          background-repeat: no-repeat;
-          animation: shimmer 1.5s infinite;
-          background-color: white;
-      }
-
-      @keyframes shimmer {
-         100% {-webkit-mask-position:left}
-       }
-    </style>
     <pre style="overflow: scroll; height: 200px;">
     <%= inspect(assigns, pretty: true) %>
     </pre>
@@ -42,6 +11,7 @@ defmodule BoomWeb.BoardLive do
       <div class="grid grid-cols-2" style="height: 100vh;">
         <div class="rpgui-container framed" style="height: 90vh; width: 90vh;">
           <p>This is a basic rpgui-container with "framed" class.</p>
+
           <button
             type="button"
             class="rpgui-button"
@@ -77,7 +47,7 @@ defmodule BoomWeb.BoardLive do
             :if={@selected_entity_id}
             type="button"
             class={["rpgui-button", match?({:move, _}, @mode) && "shimmer"]}
-            phx-click={JS.push("move_clicked")}
+            phx-click="move_clicked"
           >
             <p>move</p>
           </button>

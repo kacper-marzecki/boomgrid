@@ -1,0 +1,14 @@
+version: "3.2"
+services:
+  postgres:
+    container_name: boomgrid_postgres
+    image: library/postgres:13.1
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-U", "postgres" ]
+      interval: 5s
+      timeout: 1s
+      retries: 2

@@ -5,7 +5,9 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="csrf-token" content={csrf_token_value()} />
-    <%= live_title_tag(assigns[:page_title] || "Boom", suffix: " · Phoenix Framework") %>
+    <.live_title suffix=" · Phoenix Framework">
+      <%= assigns[:page_title] || "Boomgrid" %>
+    </.live_title>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/assets/app.css")} />
     <script
       defer
@@ -27,7 +29,9 @@
               <li><%= link("log out", to: "/session/delete") %></li>
             <% end %>
             <li><%= link("games", to: "/games") %></li>
+            <li><%= link("sprites", to: "/sprites") %></li>
             <li><%= link("board", to: "/board") %></li>
+            <li><%= link("ankh", to: ~p"/ankh") %></li>
           </ul>
         </nav>
       </section>

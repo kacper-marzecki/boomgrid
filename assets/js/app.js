@@ -30,12 +30,17 @@ let liveSocket = new LiveSocket("/live", Socket, {
   metadata: {
     click: (e, el) => {
       // var boundingRect = el.getBoundingClientRect();
-      var boundingRect = document.getElementById("board").getBoundingClientRect();
-      var browserX = e.clientX - boundingRect.x;
-      var browserY = e.clientY - boundingRect.y;
-      return {
-        x: (browserX / boundingRect.width) * 100,
-        y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
+      var board = document.getElementById("board");
+      if (board) {
+        var boundingRect = board.getBoundingClientRect();
+        var browserX = e.clientX - boundingRect.x;
+        var browserY = e.clientY - boundingRect.y;
+        return {
+          x: (browserX / boundingRect.width) * 100,
+          y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
+        };
+      } else {
+        return {};
       }
     }
   }

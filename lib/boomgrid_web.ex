@@ -23,6 +23,7 @@ defmodule BoomWeb do
 
       import Plug.Conn
       alias BoomWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
     end
   end
 
@@ -88,13 +89,26 @@ defmodule BoomWeb do
       use Phoenix.HTML
 
       # Import LiveView and .heex helpers (live_render, live_patch, <.form>, etc)
-      import Phoenix.LiveView.Helpers
-
+      import Phoenix.Component
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
 
       import BoomWeb.ErrorHelpers
       alias BoomWeb.Router.Helpers, as: Routes
+      unquote(verified_routes())
+    end
+  end
+
+  def static_paths do
+    ~w(assets fonts images favicon.ico robots.txt)
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: BoomWeb.Endpoint,
+        router: BoomWeb.Router,
+        statics: BoomWeb.static_paths()
     end
   end
 

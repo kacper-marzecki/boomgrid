@@ -25,7 +25,7 @@ defmodule BoomWeb.ConnCase do
       import BoomWeb.ConnCase
 
       alias BoomWeb.Router.Helpers, as: Routes
-
+      use BoomWeb, :verified_routes
       # The default endpoint for testing
       @endpoint BoomWeb.Endpoint
     end
