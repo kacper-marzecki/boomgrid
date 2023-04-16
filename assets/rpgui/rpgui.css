@@ -270,7 +270,7 @@ inside your html file.
 }
 
 /* game div with background image*/
-.rpgui-container.framed {
+.framed {
   /* border */
   border-style: solid;
   border-image-source: url("../images/rpgui//border-image.png");
@@ -291,7 +291,7 @@ inside your html file.
 }
 
 /* game div with golden background image*/
-.rpgui-container.framed-golden {
+.framed-golden {
   /* border */
   border-style: solid;
   border-image-source: url("../images/rpgui//border-image-golden.png");
@@ -312,7 +312,7 @@ inside your html file.
 }
 
 /* game div with golden2 background image*/
-.rpgui-container.framed-golden-2 {
+.framed-golden-2 {
   /* border */
   border-style: solid;
   border-image-source: url("../images/rpgui//border-image-golden2.png");
@@ -333,7 +333,7 @@ inside your html file.
 }
 
 /* game div with soft grey background image*/
-.rpgui-container.framed-grey {
+.framed-grey {
   position: relative;
   /* border */
   border-style: solid;

@@ -8,38 +8,39 @@ defmodule BoomWeb.AnkhLive do
     <%= inspect(assigns, pretty: true) %>
     </pre>
     <style>
-        .card {
-          transition: transform .2s;
-          display: inline-block;
-          height: 100%;
-        }
-        .card:hover {
-          transform: scale(3);
+      .card-row{
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 1em;
+        padding: 1em 0;
       }
+
       .rpgui-content * {
         image-rendering: unset;
       }
     </style>
     <div class="rpgui-content" phx-window-keyup="key_clicked">
-      <div class="grid grid-cols-2" style="height: 100vh;">
-        <div class="rpgui-container framed" style="height: 90vh; width: 90vh; ">
+      <div class="grid grid-cols-2 gap-4 min-h-screen w-screen px-6">
+        <div class="framed flex flex-col justify-center ">
           <%!-- UI  --%>
-          <div style="height: 58%;">
+          <div class="flex min-h-[400px] h-1/2">
             <%!-- Gracze  --%>
-            <div class="rpgui-container framed-grey w-1/4" style="float: left;">
+            <div class="framed-grey w-1/4">
               <%!-- Jeden gracz  --%>
-              <div class="rpgui-container framed-grey">
+              <div class="framed-grey">
                 <p>
-                  kacper 15$ <span style="cursor: pointer;">+</span>
-                  <span style="cursor: pointer;">-</span>
+                  kacper 15$ <button>+</button>
+                  <button>-</button>
                 </p>
               </div>
             </div>
-            <div class="rpgui-container framed-grey w-3/4 h-full" style="float: left;">
-              <div style="height: 90%;">
+            <div class="framed-grey w-3/4 h-full flex flex-col justify-between">
+              <div>
                 <p>menu</p>
               </div>
-              <div style="height: 10%;">
+              <div>
                 <button type="button" class="rpgui-button" phx-click={show_tab("karty")}>
                   <p>karty</p>
                 </button>
@@ -54,37 +55,22 @@ defmodule BoomWeb.AnkhLive do
           </div>
           <%!-- aktualna tura ? --%>
           <hr />
-          <div style="overflow-x: scroll; overflow-y: visible; height: 20%;  white-space: nowrap;  ">
+          <div class="card-row ">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
+            <%= for _ <- List.duplicate(:foo, 5) do %>
+              <%= card(assigns) %>
+            <% end %>
           </div>
           <%!-- Reka gracza  --%>
           <hr />
-          <div style="overflow-x: scroll;  overflow-y: visible; height: 20%;  white-space: nowrap;  ">
+          <div class="card-row ">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
-            <img class="card" src="/images/action_1.png" />
+            <%= for _ <- List.duplicate(:foo, 20) do %>
+              <%= card(assigns) %>
+            <% end %>
           </div>
         </div>
-        <div
-          class="rpgui-container framed"
-          style="
-            height: 90vh;
-            width: 90vh;
-            overflow: hidden;
-            "
-        >
+        <div class="framed overflow-hidden" >
           <div
             id="board"
             style="
@@ -124,6 +110,17 @@ defmodule BoomWeb.AnkhLive do
     >
       <p>X</p>
     </button>
+    """
+  end
+
+  def card(assigns) do
+    ~H"""
+    <div class="relative w-[100px] h-[160px]">
+      <img
+        class="absolute transition hover:scale-[3.5] hover:-translate-y-[125%] hover:translate-x-[125%] hover:z-50"
+        src="/images/action_1.png"
+      />
+    </div>
     """
   end
 
