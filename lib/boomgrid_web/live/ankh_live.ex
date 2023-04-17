@@ -57,20 +57,16 @@ defmodule BoomWeb.AnkhLive do
           <hr />
           <div class="card-row ">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <%= for _ <- List.duplicate(:foo, 5) do %>
-              <%= card(assigns) %>
-            <% end %>
+            <.card :for={_ <- 1..5} />
           </div>
           <%!-- Reka gracza  --%>
           <hr />
           <div class="card-row ">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <%= for _ <- List.duplicate(:foo, 20) do %>
-              <%= card(assigns) %>
-            <% end %>
+            <.card :for={_ <- 1..5} />
           </div>
         </div>
-        <div class="framed overflow-hidden" >
+        <div class="framed overflow-hidden">
           <div
             id="board"
             style="
@@ -115,9 +111,9 @@ defmodule BoomWeb.AnkhLive do
 
   def card(assigns) do
     ~H"""
-    <div class="relative w-[100px] h-[160px]">
+    <div class="relative w-[100px] h-[160px] mx-8">
       <img
-        class="absolute transition hover:scale-[3.5] hover:-translate-y-[125%] hover:translate-x-[125%] hover:z-50"
+        class="absolute transition hover:scale-[3.5] hover:translate-y-[-125%]  hover:z-50"
         src="/images/action_1.png"
       />
     </div>
