@@ -22,12 +22,9 @@
       <section>
         <nav>
           <ul>
-            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-              <li><%= link("LiveDashboard", to: Routes.live_dashboard_path(@conn, :home)) %></li>
-            <% end %>
-            <%= if @current_user  do %>
-              <li><%= link("log out", to: "/session/delete") %></li>
-            <% end %>
+            Cześć <%= @current_user %> :)
+            <li><%= link("LiveDashboard", to: Routes.live_dashboard_path(@conn, :home)) %></li>
+            <li><%= link("Wyloguj sie", to: "/session/delete") %></li>
             <li><%= link("games", to: "/games") %></li>
             <li><%= link("sprites", to: "/sprites") %></li>
             <li><%= link("board", to: "/board") %></li>
