@@ -9,12 +9,12 @@ defmodule BoomWeb.AnkhLive do
     </pre>
     <style>
       .card-row{
-        display: flex;
+        <%!-- display: flex;
         justify-content: center;
         width: 100%;
         flex-wrap: wrap;
         gap: 1em;
-        padding: 1em 0;
+        padding: 1em 0; --%>
       }
 
       .rpgui-content * {
@@ -31,12 +31,12 @@ defmodule BoomWeb.AnkhLive do
               <%!-- Jeden gracz  --%>
               <div class="framed-grey">
                 <p>
-                  kacper 15$ <button>+</button>
+                  kacper <button>+</button>
                   <button>-</button>
                 </p>
               </div>
             </div>
-            <div class="framed-grey w-3/4 h-full flex flex-col justify-between">
+            <div class="framed-grey w-[80%] h-full flex flex-col justify-between">
               <div>
                 <p>menu</p>
               </div>
@@ -55,15 +55,15 @@ defmodule BoomWeb.AnkhLive do
           </div>
           <%!-- aktualna tura ? --%>
           <hr />
-          <div class="card-row ">
+          <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <.card :for={_ <- 1..5} />
+            <.card :for={_ <- 1..10} />
           </div>
           <%!-- Reka gracza  --%>
           <hr />
-          <div class="card-row ">
+          <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
             <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <.card :for={_ <- 1..5} />
+            <.card :for={_ <- 1..10} />
           </div>
         </div>
         <div class="framed overflow-hidden">
@@ -110,13 +110,9 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def card(assigns) do
+    # nie wiem czemu ale class="inline-block" nie nadaje `display: inline-block;`
     ~H"""
-    <div class="relative w-[100px] h-[160px] mx-8">
-      <img
-        class="absolute transition hover:scale-[3.5] hover:translate-y-[-125%]  hover:z-50"
-        src="/images/action_1.png"
-      />
-    </div>
+    <img style="display: inline-block; " class="h-[100%] mx-1" src="/images/action_1.png" />
     """
   end
 
