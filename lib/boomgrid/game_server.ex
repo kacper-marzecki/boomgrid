@@ -26,7 +26,7 @@ defmodule Boom.GameServer do
   def start_new_game() do
     game_id = :rand.uniform(100_000)
 
-    name = {:via, Registry, {Boom.GameRegistry, game_process_name(game_id)}}
+    name = process_name_tuple(game_id)
 
     {:ok, _pid} =
       DynamicSupervisor.start_child(

@@ -50,7 +50,8 @@ defmodule Boom.MixProject do
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_ecto, "~> 4.4"},
-      {:openid_connect, "~> 0.2.2"}
+      {:openid_connect, "~> 0.2.2"},
+      {:pathex, "~> 2.5.2"}
     ]
   end
 
