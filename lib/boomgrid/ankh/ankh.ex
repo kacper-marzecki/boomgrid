@@ -91,7 +91,7 @@ defmodule Boom.Ankh do
         raise("wiecej nei da rady")
 
     game
-    |> Pathex.over!(path(:money), fn money_map -> Map.put(money_map, player, 10) end)
+    |> Pathex.set!(path(:money / player), 10)
     |> move_n_cards_from_deck_to_deck(5, :actions, player)
     |> move_n_cards_from_deck_to_deck(1, :characters, player)
     |> Pathex.set!(path(:colors / player), unused_color)

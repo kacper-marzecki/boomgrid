@@ -7,7 +7,7 @@ defmodule Boomgrid.Ecs do
 
   def get_entities(%__MODULE__{} = ecs, component_types) do
     ecs.entities
-    |> Enum.filter(fn entity ->
+    |> Enum.filter(fn _entity ->
       Enum.any?(component_types, fn %{__struct__: struct_module} ->
         struct_module in component_types
       end)
@@ -32,7 +32,7 @@ defmodule Boomgrid.Ecs do
     def process(ecs) do
       ecs.entities
       |> Enum.map(fn
-        %{position: %Position{} = position} = entity -> entity
+        %{position: %Position{} = _position} = entity -> entity
         other -> other
       end)
     end

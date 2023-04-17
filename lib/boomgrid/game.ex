@@ -172,10 +172,10 @@ defmodule Boom.Game do
 
         {:ok, %{game | rounds: [next_round | game.rounds]}}
 
-      %{cmd: :attack, target: target} ->
+      %{cmd: :attack, target: _target} ->
         nil
 
-      %{cmd: :super_attack, target: target} ->
+      %{cmd: :super_attack, target: _target} ->
         nil
     end
   end
@@ -202,7 +202,7 @@ defmodule Boom.Game do
   #   }
   # end
 
-  def can_move?(%__MODULE__{rounds: [round | _]} = game, player, destination) do
+  def can_move?(%__MODULE__{rounds: [_round | _]} = _game, _player, _destination) do
     # TODO could a player be able to pass through his own walls ?
   end
 end

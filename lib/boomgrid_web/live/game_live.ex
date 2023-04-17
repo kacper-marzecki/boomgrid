@@ -89,7 +89,7 @@ defmodule BoomWeb.GameLive do
       if connected?(socket) do
         current_user = :rand.uniform(1000)
         # Phoenix.PubSub.subscribe(Boom.PubSub, presence(game_id))
-        {:ok, player_id} = Boom.GameServer.join_and_subscribe_me!(game_id, current_user)
+        {:ok, player_id} = Boom.LegacyGameServer.join_and_subscribe_me!(game_id, current_user)
 
         {current_user, player_id}
       else
@@ -115,11 +115,11 @@ defmodule BoomWeb.GameLive do
   end
 
   def assign_game(socket) do
-    case Boom.GameServer.get_game(socket.assigns.game_id) do
+    case Boom.LegacyGameServer.get_game(socket.assigns.game_id) do
       {:ok, game_server_state} ->
         assign(socket, game: game_server_state.game)
 
-      {:error, e} ->
+      {:error, _e} ->
         socket
         |> Phoenix.LiveView.put_flash(:info, "Cannot find the game")
         |> push_redirect(to: BoomWeb.Router.Helpers.live_path(socket, BoomWeb.GamesLive))
@@ -137,7 +137,7 @@ defmodule BoomWeb.GameLive do
   def handle_event("key_press", %{"key" => key}, socket) do
     case key do
       " " ->
-        Boom.GameServer.command(socket.assigns.game_id, socket.assigns.player_id, %{
+        Boom.LegacyGameServer.command(socket.assigns.game_id, socket.assigns.player_id, %{
           cmd: :next_round
         })
 
@@ -151,7 +151,7 @@ defmodule BoomWeb.GameLive do
   end
 
   def handle_event("next_round", _payload, socket) do
-    Boom.GameServer.command(socket.assigns.game_id, socket.assigns.current_user, %{
+    Boom.LegacyGameServer.command(socket.assigns.game_id, socket.assigns.current_user, %{
       cmd: :next_round
     })
 
@@ -167,7 +167,7 @@ defmodule BoomWeb.GameLive do
         x
       end)
 
-    Boom.GameServer.command(socket.assigns.game_id, socket.assigns.player_id, %{
+    Boom.LegacyGameServer.command(socket.assigns.game_id, socket.assigns.player_id, %{
       cmd: :move,
       to: [col, row]
     })

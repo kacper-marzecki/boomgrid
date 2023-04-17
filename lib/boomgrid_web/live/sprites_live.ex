@@ -1,8 +1,6 @@
 defmodule BoomWeb.SpritesLive do
   use BoomWeb, :live_view
 
-  alias Phoenix.LiveView.JS
-
   def render(assigns) do
     ~H"""
     <pre style="overflow: scroll; height: 200px;">

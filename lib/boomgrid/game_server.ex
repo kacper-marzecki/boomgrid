@@ -23,15 +23,15 @@ defmodule Boom.GameServer do
     Process.exit(pid, :normal)
   end
 
-  def start_new_game() do
-    game_id = :rand.uniform(100_000)
+  def start_new_game(type, state) do
+    game_id = "#{type}/#{Boom.Id.gen_id()}"
 
     name = process_name_tuple(game_id)
 
     {:ok, _pid} =
       DynamicSupervisor.start_child(
         Boom.GameSupervisor,
-        {__MODULE__, name: name, game_id: game_id}
+        {__MODULE__, name: name, game_id: game_id, state: state}
       )
 
     {:ok, game_id}
@@ -45,16 +45,8 @@ defmodule Boom.GameServer do
     "game/#{game_id}"
   end
 
-  # API for processes to join the game with a username
-  def join_and_subscribe_me!(game_id, username) do
-    with {:ok, player_id} <-
-           GenServer.call(
-             process_name_tuple(game_id),
-             {:join, username}
-           ) do
-      :ok = Phoenix.PubSub.subscribe(Boom.PubSub, "game/#{game_id}")
-      {:ok, player_id}
-    end
+  def subscribe_me!(game_id) do
+    :ok = Phoenix.PubSub.subscribe(Boom.PubSub, "game/#{game_id}")
   end
 
   def get_game(game_id) do
@@ -66,9 +58,9 @@ defmodule Boom.GameServer do
     end
   end
 
-  def command(game_id, username, command) do
+  def execute(game_id, function) do
     process_name_tuple(game_id)
-    |> GenServer.call({:command, username, command})
+    |> GenServer.call({:execute, function})
   end
 
   ########################################################################
@@ -76,59 +68,28 @@ defmodule Boom.GameServer do
   ########################################################################
   # TODO: handle  n-player restrictions, spectators, modifications to the game  after joining, but before starting
 
-  def handle_call({:join, username}, {pid, _}, %{players: players} = state) do
-    player_id =
-      Enum.map(players, fn player -> player.id end)
-      |> Enum.max(fn -> 0 end)
-      |> Kernel.+(1)
+  def handle_call({:execute, function}, _from_, %{game: game, game_id: game_id} = state) do
+    try do
+      new_game = function.(game)
+      broadcast_game(game)
+      {:reply, :ok, Map.put(state, :game, new_game)}
+    rescue
+      e ->
+        Logger.error("""
+        Game #{game_id} error
+        #{e}
+        """)
 
-    # player_id = Enum.max_by(players, fn player -> player.id end, fn -> 0 end) + 1
-    players = [%{id: player_id, username: username, pid: pid} | players]
-    Process.monitor(pid)
-    {:reply, {:ok, player_id}, %{state | players: players}}
-  end
-
-  def handle_call({:command, player_id, cmd}, _, %{game: game, players: players} = state) do
-    case Enum.find(players, fn %{id: id} -> player_id == id end) do
-      nil ->
-        {:reply, {:error, :not_a_player}, state}
-
-      %{id: id} ->
-        command = Map.put(cmd, :player_id, id)
-
-        case Boom.Game.command(game, command) do
-          {:ok, new_game} ->
-            broadcast_game(new_game)
-            {:reply, :ok, %{state | game: new_game}}
-
-          {:error, reason} ->
-            Logger.error("""
-            Game Command error
-            reason: #{reason}
-            cmd: #{inspect(cmd)}
-            server state: #{inspect(state)}
-            """)
-
-            {:reply, :error, state}
-        end
+        {:reply, {:error, e}, state}
     end
   end
 
-  # when the client process exits, remove the player from the game
-  def handle_info(
-        {:DOWN, _ref, :process, object, _reason},
-        %{players: players} = state
-      ) do
-    only_live_players = Enum.filter(players, fn %{pid: pid} -> pid != object end)
-    {:noreply, %{state | players: only_live_players}}
-  end
-
   ########################################################################
-  # PubSub functions
+  # PubSub helpers
   ########################################################################
 
-  def broadcast_game(game) do
-    Phoenix.PubSub.broadcast(Boom.PubSub, "game/#{game.game_id}", {:new_game_state, game})
+  def broadcast_game(%{game: game, game_id: game_id} = _state) do
+    Phoenix.PubSub.broadcast(Boom.PubSub, "game/#{game_id}", {:new_game_state, game})
   end
 
   ########################################################################
@@ -137,7 +98,14 @@ defmodule Boom.GameServer do
 
   def init(opts) do
     Process.flag(:trap_exit, true)
-    {:ok, %{game: Boom.Game.new_game(Keyword.fetch!(opts, :game_id)), players: []}, @timeout}
+
+    state = %{
+      game: Keyword.fetch!(opts, :state),
+      game_id: Keyword.fetch!(opts, :game_id)
+    }
+
+    broadcast_game(state)
+    {:ok, state, @timeout}
   end
 
   def start_link(opts) do

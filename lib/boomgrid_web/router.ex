@@ -33,14 +33,14 @@ defmodule BoomWeb.Router do
     live_dashboard "/dashboard", metrics: BoomWeb.Telemetry
     get("/", PageController, :index)
     live "/board", BoardLive
-    live "/ankh", AnkhLive
+    live "/ankh/:game_id", AnkhLive
     live "/sprites", SpritesLive
     live "/games", GamesLive
     live "/game/:game_id", GameLive
   end
 
   if Mix.env() == :dev do
-    def set_random_user(conn, opts) do
+    def set_random_user(conn, _opts) do
       Plug.Conn.assign(conn, :current_user, UUID.uuid4())
     end
   end

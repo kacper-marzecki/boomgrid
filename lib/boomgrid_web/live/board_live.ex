@@ -100,14 +100,16 @@ defmodule BoomWeb.BoardLive do
           bottom: (entity_position.y - viewport_anchor.y) / viewport_size * 100,
           height: sprite.size / viewport_size * 100,
           sprite_url: sprite.url,
-          selected?: selected_entity_id == id
+          selected?: selected_entity_id == id,
+          entity_position: entity_position,
+          sprite_size: sprite.size
         }
 
         ~H"""
         <div
           style={"position: absolute; left: #{@left}%; bottom: #{@bottom}%;  width: max-content; height: #{@height}%; #{@selected? && "background-color: white;"}"}
           phx-click={JS.push("entity_clicked", value: %{target: "#{@id}"})}
-          title={"#{inspect(entity_position)} #{sprite.size}"}
+          title={"#{inspect(@entity_position)} #{@sprite_size}"}
         >
           <img src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
         </div>
@@ -241,19 +243,6 @@ defmodule BoomWeb.BoardLive do
       end
 
     {:noreply, socket}
-  end
-
-  def handle_event("map_move_clicked", %{"direction" => direction}, socket) do
-    IO.inspect(direction)
-
-    shift_size = socket.assigns[:viewport_size] / 4
-    shift_x = direction["x"] * shift_size
-    shift_y = direction["y"] * shift_size
-
-    {x, y, z} = socket.assigns[:viewport_anchor]
-    viewport_anchor = {x + shift_x, y + shift_y, z}
-
-    {:noreply, socket |> assign(viewport_anchor: viewport_anchor)}
   end
 
   def handle_event("key_clicked", %{"key" => key}, socket) do

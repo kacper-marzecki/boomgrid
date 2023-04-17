@@ -2,13 +2,6 @@ defmodule BoomWeb.UserAuth do
   import Plug.Conn
   import Phoenix.Controller
 
-  # Make the remember me cookie valid for 60 days.
-  # If you want bump or reduce this value, also change
-  # the token expiry itself in UserToken.
-  @max_age 60 * 60 * 24 * 60
-  @remember_me_cookie "_skrzat_web_user_remember_me"
-  @remember_me_options [sign: true, max_age: @max_age, same_site: "Lax"]
-
   # This function renews the session ID and erases the whole
   # session to avoid fixation attacks. If there is any data
   # in the session you may want to preserve after log in/log out,
@@ -42,7 +35,6 @@ defmodule BoomWeb.UserAuth do
 
     conn
     |> renew_session()
-    |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: "/")
   end
 
@@ -82,12 +74,6 @@ defmodule BoomWeb.UserAuth do
       |> halt()
     end
   end
-
-  defp maybe_store_return_to(%{method: "GET"} = conn) do
-    put_session(conn, :user_return_to, current_path(conn))
-  end
-
-  defp maybe_store_return_to(conn), do: conn
 
   defp signed_in_path(_conn), do: "/"
 end
