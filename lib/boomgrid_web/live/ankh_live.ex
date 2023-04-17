@@ -310,26 +310,31 @@ defmodule BoomWeb.AnkhLive do
     |> Enum.find(fn entity -> entity.id == id end)
   end
 
+  def gen_id(), do: System.unique_integer([:positive, :monotonic])
+
   # TODO zoom nie dziala
-  def mock_entities(),
-    do: [
+  def mock_entities() do
+    sprites_and_background = [
       %{
         sprite: %{url: "/images/ankh_morpork_plansza.jpg", size: 500},
         position: %{x: 0, y: 0, z: 0},
-        id: 1,
+        id: gen_id(),
         background: true
       },
       %{
         sprite: %{url: "/images/floor.png", size: 20},
         position: %{x: 0, y: 0, z: 0},
-        id: 2,
+        id: gen_id(),
         selectable: true
       },
       %{
         sprite: %{url: "/images/action_1.png", size: 20},
         position: %{x: 50, y: 50, z: 0},
-        id: 3,
+        id: gen_id(),
         selectable: true
       }
     ]
+
+    sprites_and_background
+  end
 end
