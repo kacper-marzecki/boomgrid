@@ -31,18 +31,19 @@ defmodule BoomWeb.UserSessionController do
     else
       other ->
         IO.inspect(other, label: "OTHER AUTH RESPONSE")
-
         conn
-        |> put_flash(:error, "Unrecognized user.")
         |> redirect(to: "/")
     end
   end
 
-  def validate_session_hasnt_been_logged_out(session_id) do
-    case Boom.Repo.get_by(Boom.UserSession.LoggedOutSession, session_id: session_id) do
-      nil -> :ok
-      _ -> :error
-    end
+  def validate_session_hasnt_been_logged_out(_session_id) do
+    # case Boom.Repo.get_by(Boom.UserSession.LoggedOutSession, session_id: session_id) do
+    #   nil -> :ok
+    #   _ -> :error
+    # end
+    # STUB
+    # TODO - użyć logout_url z discovery_url keycloak do logout'u zamiast
+    :ok
   end
 
   def delete(conn, _params) do
