@@ -6,6 +6,8 @@ defmodule BoomWeb.Endpoint do
   # Set :encryption_salt if you would also like to encrypt it.
   @session_options [
     store: :cookie,
+    # 20 days
+    max_age: 24 * 60 * 60 * 20,
     key: "_boomgrid_key",
     signing_salt: "7dMRT21/"
   ]

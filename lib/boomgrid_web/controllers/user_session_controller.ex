@@ -18,7 +18,8 @@ defmodule BoomWeb.UserSessionController do
     code = params["code"]
 
     with {:ok, tokens} <- OpenIDConnect.fetch_tokens(:keycloak, code),
-         {:ok, claims} <- OpenIDConnect.verify(:keycloak, tokens["id_token"]) do
+         {:ok, claims} <- OpenIDConnect.verify(:keycloak, tokens["id_token"]),
+         :ok <- validate_session_hasnt_been_logged_out(claims["sid"]) do
       username = claims["preferred_username"]
       Logger.info("claims: #{inspect(claims)}")
       Logger.info("preferred_username: #{inspect(claims)}")
@@ -34,6 +35,13 @@ defmodule BoomWeb.UserSessionController do
         conn
         |> put_flash(:error, "Unrecognized user.")
         |> redirect(to: "/")
+    end
+  end
+
+  def validate_session_hasnt_been_logged_out(session_id) do
+    case Boom.Repo.get_by(Boom.UserSession.LoggedOutSession, session_id: session_id) do
+      nil -> :ok
+      _ -> :error
     end
   end
 
