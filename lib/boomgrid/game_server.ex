@@ -114,7 +114,7 @@ defmodule Boom.GameServer do
   end
 
   def handle_info({:EXIT, _from, reason}, state) do
-    IO.inspect("#{state.game.game_id} Stopped with reason #{inspect(reason)}")
+    IO.inspect("#{state.game_id} Stopped with reason #{inspect(reason)}")
     {:stop, reason, state}
   end
 

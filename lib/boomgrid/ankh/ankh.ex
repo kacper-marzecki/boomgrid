@@ -5,24 +5,22 @@ defmodule Boom.Ankh do
 
   def new_game do
     %{
-      money: %{kacper: 10, szczepan: 20},
+      money: %{},
       decks: %{
         graveyard: [],
         events: [],
-        actions: new_cards(20),
+        actions: new_cards(1..9, "action"),
         characters: [],
-        table: new_cards(1),
-        kacper: new_cards(3),
-        szczepan: new_cards(4)
+        table: []
       },
       tokens: [],
       colors: %{}
     }
   end
 
-  def new_cards(n) do
-    for _ <- 1..n do
-      %{id: gen_id(), image: "images/action_1.png"}
+  def new_cards(range, type) do
+    for id <- range do
+      %{id: "#{id}", image: "images/ankh/#{type}_#{id}.png"}
     end
   end
 
@@ -58,14 +56,9 @@ defmodule Boom.Ankh do
 
   def move_n_cards_from_deck_to_deck(game, n, from, to) do
     Logger.debug("Moving #{n} cards, from #{from} to  #{to}")
-    Logger.debug("0")
     from_deck = Pathex.get(game, path(:decks / from))
-    Logger.debug("1")
-
     cards = Enum.take(from_deck, n)
-    Logger.debug("2")
-    from_deck = Enum.drop(cards, n)
-    Logger.debug("3")
+    from_deck = Enum.drop(from_deck, n)
 
     game
     |> Pathex.over!(path(:decks / to), fn deck -> cards ++ deck end)
@@ -115,4 +108,11 @@ defmodule Boom.Ankh do
   end
 
   def gen_id(), do: System.unique_integer([:positive, :monotonic])
+
+  ###############################################################
+
+  def find_card(game) do
+    game
+    |> Pathex.view!(path(:decks) ~> Lenses.star())
+  end
 end

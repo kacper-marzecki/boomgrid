@@ -23,12 +23,12 @@ defmodule BoomWeb.AnkhLive do
       }
     </style>
     <div class="rpgui-content" phx-window-keyup="key_clicked">
-      <div class="grid grid-cols-2 gap-4 min-h-screen w-screen px-6">
+      <div class="grid grid-cols-2 gap-2 min-h-screen  w-screen px-6">
         <div class="framed flex flex-col justify-center ">
           <%!-- UI  --%>
-          <div class="flex min-h-[400px] h-1/2">
+          <div class="flex h-1/2">
             <%!-- Gracze  --%>
-            <div class="framed-grey w-1/4 ">
+            <div class="framed-grey w-[20%] ">
               <%!-- Jeden gracz  --%>
               <div :for={player <- Map.keys(@game.money)} class="framed-grey">
                 <p><%= player %> <%= @game.money[player] %> <%= @game.colors[player] %></p>
@@ -42,34 +42,42 @@ defmodule BoomWeb.AnkhLive do
                 <p>Dołącz</p>
               </button>
             </div>
-            <div class="framed-grey w-[80%] h-full flex flex-col justify-between">
-              <div>
-                <p>menu</p>
-              </div>
-              <div>
-                <button type="button" class="rpgui-button" phx-click={show_tab("karty")}>
-                  <p>karty</p>
-                </button>
-                <button type="button" class="rpgui-button" phx-click={show_tab("pionki")}>
-                  <p>pionki</p>
-                </button>
-                <button type="button" class="rpgui-button" phx-click={show_tab("akcje")}>
-                  <p>akcja</p>
-                </button>
-              </div>
+            <div class="framed-grey w-[80%] h-full flex flex-row justify-between">
+              <%= case @selected do %>
+                <% nil -> %>
+                <% {:card, card_id} -> %>
+                  <div class="w-max-[50%]]"><.card card_id={card_id} /></div>
+                  <div class="mx-3 flex flex-col gap-5 items-center justify-center">
+                    <div>
+                      <button type="button" class="rpgui-button w-[50%]" phx-click={show_tab("karty")}>
+                        <p>karty</p>
+                      </button>
+                    </div>
+                    <div>
+                      <button type="button" class="rpgui-button" phx-click={show_tab("karty")}>
+                        <p>karty</p>
+                      </button>
+                    </div>
+                    <div>
+                      <button type="button" class="rpgui-button" phx-click={show_tab("karty")}>
+                        <p>karty</p>
+                      </button>
+                    </div>
+                  </div>
+              <% end %>
             </div>
           </div>
           <%!-- aktualna tura ? --%>
           <hr />
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
-            <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <.card :for={_ <- 1..10} />
+            <%!-- <.card :for={_ <- 1..10} /> --%>
           </div>
           <%!-- Reka gracza  --%>
           <hr />
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
-            <%!-- TODO: dodać karty katóre aktualnie masz w reku   --%>
-            <.card :for={_ <- 1..10} />
+            <%= for %{id: id} <- @game.decks[@player] || [] do %>
+              <.card card_id={id} />
+            <% end %>
           </div>
         </div>
         <div class="framed overflow-hidden">
@@ -118,7 +126,12 @@ defmodule BoomWeb.AnkhLive do
   def card(assigns) do
     # nie wiem czemu ale class="inline-block" nie nadaje `display: inline-block;`
     ~H"""
-    <img style="display: inline-block; " class="h-[100%] mx-1" src="/images/action_1.png" />
+    <img
+      style="display: inline-block; "
+      class="h-[100%] mx-1"
+      src={"/images/ankh/action_#{@card_id}.png"}
+      phx-click={JS.push("card_clicked", value: %{card_id: @card_id})}
+    />
     """
   end
 
@@ -209,6 +222,10 @@ defmodule BoomWeb.AnkhLive do
     end
 
     {:noreply, socket}
+  end
+
+  def handle_event("card_clicked", %{"card_id" => card_id}, socket) do
+    {:noreply, socket |> assign(selected: {:card, card_id})}
   end
 
   def handle_event(
@@ -307,9 +324,14 @@ defmodule BoomWeb.AnkhLive do
     {:noreply, socket}
   end
 
+  def handle_event("cancel_clicked", _payload, socket) do
+    {:noreply, socket |> assign(selected: nil)}
+  end
+
   def handle_event("key_clicked", %{"key" => key}, socket) do
     case key do
       "m" -> handle_event("move_clicked", nil, socket)
+      "Escape" -> handle_event("cancel_clicked", nil, socket)
       _ -> {:noreply, socket}
     end
   end
