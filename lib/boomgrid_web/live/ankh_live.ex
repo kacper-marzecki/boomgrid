@@ -1,6 +1,7 @@
 defmodule BoomWeb.AnkhLive do
   use BoomWeb, :live_view
   alias Phoenix.LiveView.JS
+  require Logger
 
   def render(assigns) do
     ~H"""
@@ -27,14 +28,19 @@ defmodule BoomWeb.AnkhLive do
           <%!-- UI  --%>
           <div class="flex min-h-[400px] h-1/2">
             <%!-- Gracze  --%>
-            <div class="framed-grey w-1/4">
+            <div class="framed-grey w-1/4 ">
               <%!-- Jeden gracz  --%>
-              <div class="framed-grey">
-                <p>
-                  kacper <button>+</button>
-                  <button>-</button>
-                </p>
+              <div :for={player <- Map.keys(@game.money)} class="framed-grey">
+                <p><%= player %> <%= @game.money[player] %> <%= @game.colors[player] %></p>
               </div>
+              <button
+                :if={can_join(@game, @player)}
+                type="button"
+                class="rpgui-button"
+                phx-click="join_game"
+              >
+                <p>Dołącz</p>
+              </button>
             </div>
             <div class="framed-grey w-[80%] h-full flex flex-col justify-between">
               <div>
@@ -158,21 +164,51 @@ defmodule BoomWeb.AnkhLive do
     end)
   end
 
-  def mount(%{"game_id" => game_id}, _session, socket) do
+  def mount(%{"game_id" => game_id}, %{"current_user" => username} = session, socket) do
     entities = mock_entities()
+    player = String.to_atom(username)
 
-    {:ok,
-     socket
-     |> assign(
-       game_id: game_id,
-       viewport_anchor: %{x: 0, y: 0, z: 0},
-       viewport_size:
-         entities |> Enum.map(fn entity -> entity[:sprite][:size] || 0 end) |> Enum.max(),
-       entities: entities,
-       selected_entity_id: nil,
-       # :move
-       mode: :normal
-     )}
+    if connected?(socket) do
+      Boom.GameServer.subscribe_me!(game_id)
+    end
+
+    socket =
+      with {:ok, game} <- Boom.GameServer.get_game(game_id) do
+        socket
+        |> assign(
+          game: game,
+          player: player,
+          game_id: game_id,
+          viewport_anchor: %{x: 0, y: 0, z: 0},
+          viewport_size:
+            entities |> Enum.map(fn entity -> entity[:sprite][:size] || 0 end) |> Enum.max(),
+          entities: entities,
+          selected_entity_id: nil,
+          selected: nil,
+          # :move
+          mode: :normal
+        )
+      else
+        {:error, e} ->
+          err = "Error while starting up Ankh LiveView: #{inspect(e)}"
+          Logger.error(err)
+
+          socket
+          |> Phoenix.LiveView.put_flash(:error, err)
+          |> Phoenix.LiveView.redirect(to: "/games")
+      end
+
+    {:ok, socket}
+  end
+
+  def handle_event("join_game", _payload, socket) do
+    if can_join(socket.assigns.game, socket.assigns.player) do
+      Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+        Boom.Ankh.add_player(game, socket.assigns.player)
+      end)
+    end
+
+    {:noreply, socket}
   end
 
   def handle_event(
@@ -232,19 +268,6 @@ defmodule BoomWeb.AnkhLive do
           assign(socket, selected_entity_id: nil, mode: :normal)
       end
 
-    # mutacja to zguba wszystkiego
-    # pora na ecs
-    # maybe_moved_to =
-    #   case selected_entity do
-    #     nil ->
-    #       nil
-    #   end
-
-    # case entity do
-    #   %{selectable: true} -> id
-    #   _ -> nil
-    # end
-
     {:noreply, socket}
   end
 
@@ -291,9 +314,18 @@ defmodule BoomWeb.AnkhLive do
     end
   end
 
+  def handle_info({:new_game_state, game}, socket) do
+    {:noreply, socket |> assign(game: game)}
+  end
+
   def get_entity_by_id(socket, id) do
     socket.assigns.entities
     |> Enum.find(fn entity -> entity.id == id end)
+  end
+
+  def can_join(game, player) do
+    players = Map.keys(game.money)
+    length(players) <= 4 and !Enum.member?(players, player)
   end
 
   def gen_id(), do: System.unique_integer([:positive, :monotonic])

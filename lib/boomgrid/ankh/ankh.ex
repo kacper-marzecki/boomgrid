@@ -1,22 +1,29 @@
 defmodule Boom.Ankh do
   use Pathex
   alias Pathex.Lenses
+  require Logger
 
   def new_game do
     %{
-      money: %{},
+      money: %{kacper: 10, szczepan: 20},
       decks: %{
         graveyard: [],
         events: [],
-        actions: [%{id: 3}],
+        actions: new_cards(20),
         characters: [],
-        table: [],
-        kacper: [],
-        szczepan: []
+        table: new_cards(1),
+        kacper: new_cards(3),
+        szczepan: new_cards(4)
       },
       tokens: [],
       colors: %{}
     }
+  end
+
+  def new_cards(n) do
+    for _ <- 1..n do
+      %{id: gen_id(), image: "images/action_1.png"}
+    end
   end
 
   def place_token(game, %{x: _x, y: _y, sprite: _sprite} = agent) do
@@ -42,7 +49,7 @@ defmodule Boom.Ankh do
   end
 
   def move_all_cards_from_deck_to_deck(game, from, to) do
-    from_deck = path(:decks / from) |> Pathex.get(game)
+    from_deck = Pathex.get(game, path(:decks / from))
 
     game
     |> Pathex.over!(path(:decks / to), fn deck -> from_deck ++ deck end)
@@ -50,10 +57,15 @@ defmodule Boom.Ankh do
   end
 
   def move_n_cards_from_deck_to_deck(game, n, from, to) do
-    from_deck = path(:decks / from) |> Pathex.get(game)
+    Logger.debug("Moving #{n} cards, from #{from} to  #{to}")
+    Logger.debug("0")
+    from_deck = Pathex.get(game, path(:decks / from))
+    Logger.debug("1")
 
     cards = Enum.take(from_deck, n)
+    Logger.debug("2")
     from_deck = Enum.drop(cards, n)
+    Logger.debug("3")
 
     game
     |> Pathex.over!(path(:decks / to), fn deck -> cards ++ deck end)
@@ -91,10 +103,11 @@ defmodule Boom.Ankh do
         raise("wiecej nei da rady")
 
     game
-    |> Pathex.set!(path(:money / player), 10)
+    |> Pathex.over!(path(:money), &Map.put(&1, player, 10))
+    |> Pathex.over!(path(:decks), &Map.put(&1, player, []))
     |> move_n_cards_from_deck_to_deck(5, :actions, player)
     |> move_n_cards_from_deck_to_deck(1, :characters, player)
-    |> Pathex.set!(path(:colors / player), unused_color)
+    |> Pathex.over!(path(:colors), &Map.put(&1, player, unused_color))
   end
 
   def colors() do

@@ -51,7 +51,7 @@ defmodule Boom.GameServer do
 
   def get_game(game_id) do
     try do
-      {:ok, :sys.get_state(process_name_tuple(game_id))}
+      {:ok, :sys.get_state(process_name_tuple(game_id)).game}
     catch
       :exit, _ ->
         {:error, :not_found}
@@ -71,13 +71,14 @@ defmodule Boom.GameServer do
   def handle_call({:execute, function}, _from_, %{game: game, game_id: game_id} = state) do
     try do
       new_game = function.(game)
-      broadcast_game(game)
-      {:reply, :ok, Map.put(state, :game, new_game)}
+      new_state = Map.put(state, :game, new_game)
+      broadcast_game(new_state)
+      {:reply, :ok, new_state}
     rescue
       e ->
         Logger.error("""
         Game #{game_id} error
-        #{e}
+        #{inspect(e)}
         """)
 
         {:reply, {:error, e}, state}

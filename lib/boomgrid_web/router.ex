@@ -12,7 +12,7 @@ defmodule BoomWeb.Router do
     plug :fetch_current_user
 
     if Mix.env() == :dev do
-      plug :set_random_user
+      plug :set_mock_user
     end
   end
 
@@ -40,8 +40,10 @@ defmodule BoomWeb.Router do
   end
 
   if Mix.env() == :dev do
-    def set_random_user(conn, _opts) do
-      Plug.Conn.assign(conn, :current_user, UUID.uuid4())
+    def set_mock_user(conn, _opts) do
+      conn
+      |> Plug.Conn.assign(:current_user, "mock")
+      |> Plug.Conn.put_session(:current_user, "mock")
     end
   end
 end
