@@ -30,7 +30,11 @@ defmodule BoomWeb.AnkhLive do
             <%!-- Gracze  --%>
             <div class="framed-grey w-[30%] ">
               <%!-- Jeden gracz  --%>
-              <div :for={player <- Map.keys(@game.money)} class="framed-grey">
+              <div
+                :for={player <- Map.keys(@game.money)}
+                class="framed-grey"
+                phx-click={JS.push("player_clicked", value: %{player: player})}
+              >
                 <p><%= player %> <%= @game.money[player] %> <%= @game.colors[player] %></p>
               </div>
               <button
@@ -42,35 +46,76 @@ defmodule BoomWeb.AnkhLive do
                 <p>Dołącz</p>
               </button>
             </div>
+            <%!-- OPCJE --%>
             <div class="framed-grey w-[70%] h-full flex flex-row ">
               <%= case @selected do %>
                 <% nil -> %>
-                  <div class="mx-3 flex flex-col items-center justify-center">
+                  <div class="mx-3 flex flex-col items-center justify-center ">
                     <button
                       :for={deck <- built_in_decks()}
                       type="button"
-                      class="rpgui-button w-full"
+                      class={"rpgui-button w-full #{deck == @displayed_deck && "golden"}"}
                       phx-click={JS.push("deck_clicked", value: %{deck_id: deck})}
                     >
                       <p><%= deck_display_name(deck) %></p>
                     </button>
                   </div>
-                <% {:card, card_id} -> %>
+                <% {:card, card} -> %>
                   <div class="w-1/2">
-                    <.card class="transition hover:scale-[1.5] hover:translate-y-4" card_id={card_id} />
+                    <.card class="transition hover:scale-[1.5] hover:translate-y-4" card={card} />
                   </div>
-                  <div class="mx-3 flex flex-col gap-5 items-center justify-center">
-                    <%!-- zagraj karte --%>
-                    <div :if={can_play(@game, @player, card_id)}>
-                      <button
-                        type="button"
-                        class="rpgui-button w-[50%]"
-                        phx-click={JS.push("play_card", value: %{card_id: card_id})}
-                      >
-                        <p>Zagraj</p>
-                      </button>
-                    </div>
-                    <%!-- cancel karte --%>
+                  <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
+                    <%!-- PRZENIEŚ KARTE --%>
+                    <%= case @action do %>
+                      <% {:move_card, _card, nil} -> %>
+                        <button
+                          :for={deck <- Map.keys(@game.decks)}
+                          type="button"
+                          class="rpgui-button w-full"
+                          phx-click={JS.push("card_move_target_chosen", value: %{deck_id: deck})}
+                        >
+                          <p><%= deck_display_name(deck) %></p>
+                        </button>
+                      <% {:move_card, _card, _deck} -> %>
+                        <button
+                          :for={
+                            {position, position_text} <- [
+                              {"first", "Na wierzch"},
+                              {"last", "Na spód"},
+                              {"random", "Wtasuj"}
+                            ]
+                          }
+                          type="button"
+                          class="rpgui-button w-full"
+                          phx-click={
+                            JS.push("card_move_target_position_chosen", value: %{position: position})
+                          }
+                        >
+                          <p><%= position_text %></p>
+                        </button>
+                      <% _ -> %>
+                        <%!-- ZAGRAJ KARTE --%>
+                        <div :if={can_play(@game, @player, card.id)}>
+                          <button
+                            type="button"
+                            class="rpgui-button w-[50%]"
+                            phx-click={JS.push("play_card", value: %{card_id: card.id})}
+                          >
+                            <p>Zagraj</p>
+                          </button>
+                        </div>
+                        <%!-- PRZENIEŚ KARTE --%>
+                        <div>
+                          <button
+                            type="button"
+                            class="rpgui-button w-[50%]"
+                            phx-click={JS.push("move_card", value: %{card_id: card.id})}
+                          >
+                            <p>Przenieś</p>
+                          </button>
+                        </div>
+                    <% end %>
+
                     <div>
                       <button type="button" class="rpgui-button" phx-click={JS.push("cancel_clicked")}>
                         <p>Anuluj</p>
@@ -85,14 +130,14 @@ defmodule BoomWeb.AnkhLive do
             <p><%= deck_display_name(@displayed_deck) %></p>
           </div>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
-            <%= for %{id: id} <- @game.decks[@displayed_deck] do %>
-              <.card card_id={id} />
+            <%= for card <- @game.decks[@displayed_deck] do %>
+              <.card card={card} reverse={@displayed_deck not in [:table, @player]} />
             <% end %>
           </div>
           <%!-- Reka gracza  --%>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
-            <%= for %{id: id} <- @game.decks[@player] || [] do %>
-              <.card card_id={id} />
+            <%= for card <- @game.decks[@player] || [] do %>
+              <.card card={card} />
             <% end %>
           </div>
         </div>
@@ -141,14 +186,17 @@ defmodule BoomWeb.AnkhLive do
 
   def card(assigns) do
     # nie wiem czemu ale class="inline-block" nie nadaje `display: inline-block;`
-    assigns = Phoenix.Component.assign_new(assigns, :class, fn _ -> "" end)
+    assigns =
+      assigns
+      |> Phoenix.Component.assign_new(:class, fn _ -> "" end)
+      |> Phoenix.Component.assign_new(:reverse, fn _ -> false end)
 
     ~H"""
     <img
       style="display: inline-block; "
       class={"h-[100%] mx-1 #{@class}"}
-      src={"/images/ankh/action_#{@card_id}.png"}
-      phx-click={JS.push("card_clicked", value: %{card_id: @card_id})}
+      src={if @reverse, do: @card.reverse_image, else: @card.image}
+      phx-click={JS.push("card_clicked", value: %{card_id: @card.id})}
     />
     """
   end
@@ -210,14 +258,16 @@ defmodule BoomWeb.AnkhLive do
           game: game,
           player: player,
           game_id: game_id,
+          # BOARD assigns
+          selected: nil,
+          action: nil,
+          displayed_deck: :table,
+          # BOARD assigns
           viewport_anchor: %{x: 0, y: 0, z: 0},
           viewport_size:
             entities |> Enum.map(fn entity -> entity[:sprite][:size] || 0 end) |> Enum.max(),
           entities: entities,
           selected_entity_id: nil,
-          selected: nil,
-          displayed_deck: :table,
-          # :move
           mode: :normal
         )
       else
@@ -244,13 +294,20 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def handle_event("card_clicked", %{"card_id" => card_id}, socket) do
-    {:noreply, socket |> assign(selected: {:card, card_id})}
+    card = Boom.Ankh.find_card(socket.assigns.game, card_id)
+    {:noreply, socket |> assign(selected: {:card, card})}
   end
 
   def handle_event("deck_clicked", %{"deck_id" => deck_string}, socket) do
     deck = String.to_existing_atom(deck_string)
 
     {:noreply, socket |> assign(displayed_deck: deck)}
+  end
+
+  def handle_event("player_clicked", %{"player" => player_string}, socket) do
+    player = String.to_existing_atom(player_string)
+
+    {:noreply, socket |> assign(displayed_deck: player)}
   end
 
   def handle_event("play_card", %{"card_id" => card_id}, socket) do
@@ -261,6 +318,27 @@ defmodule BoomWeb.AnkhLive do
     end
 
     {:noreply, socket}
+  end
+
+  def handle_event("move_card", %{"card_id" => card_id}, socket) do
+    card = Boom.Ankh.find_card(socket.assigns.game, card_id)
+    {:noreply, socket |> assign(action: {:move_card, card, nil})}
+  end
+
+  def handle_event("card_move_target_chosen", %{"deck_id" => deck_string}, socket) do
+    deck = String.to_existing_atom(deck_string)
+    {:move_card, card, nil} = socket.assigns.action
+    {:noreply, socket |> assign(action: {:move_card, card, deck})}
+  end
+
+  def handle_event("card_move_target_position_chosen", %{"position" => position}, socket) do
+    {:move_card, card, deck} = socket.assigns.action
+
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.move_card_to_deck(game, card.id, deck, position)
+    end)
+
+    {:noreply, socket |> assign(action: nil, selected: nil)}
   end
 
   def handle_event(
@@ -360,7 +438,7 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def handle_event("cancel_clicked", _payload, socket) do
-    {:noreply, socket |> assign(selected: nil)}
+    {:noreply, socket |> assign(selected: nil, action: nil)}
   end
 
   def handle_event("key_clicked", %{"key" => key}, socket) do
@@ -391,7 +469,8 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def built_in_decks do
-    [:graveyard, :events, :actions, :characters, :table]
+    Boom.Ankh.new_game().decks
+    |> Map.keys()
   end
 
   def deck_display_name(deck_id) do
@@ -401,6 +480,7 @@ defmodule BoomWeb.AnkhLive do
       :actions -> "akcje"
       :characters -> "postacie"
       :table -> "stół"
+      :districts -> "dzielnice"
       other -> other
     end
   end

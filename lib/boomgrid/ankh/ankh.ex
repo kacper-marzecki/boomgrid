@@ -11,6 +11,7 @@ defmodule Boom.Ankh do
         events: [],
         actions: new_cards(1..9, "action"),
         characters: [],
+        districts: [],
         table: []
       },
       tokens: [],
@@ -20,7 +21,11 @@ defmodule Boom.Ankh do
 
   def new_cards(range, type) do
     for id <- range do
-      %{id: "#{id}", image: "images/ankh/#{type}_#{id}.png"}
+      %{
+        id: "#{id}",
+        image: "/images/ankh/#{type}_#{id}.png",
+        reverse_image: "/images/ankh/#{type}_reverse.png"
+      }
     end
   end
 
@@ -69,7 +74,7 @@ defmodule Boom.Ankh do
     path(:decks) ~> Lenses.star()
   end
 
-  def move_card_to_deck(game, card_id, deck_id) do
+  def move_card_to_deck(game, card_id, deck_id, position \\ "first") do
     # ?? Major PITA
     [[card]] =
       Pathex.get(
@@ -81,7 +86,16 @@ defmodule Boom.Ankh do
 
     game
     |> Pathex.over!(all_decks_path(), fn deck -> List.delete(deck, card) end)
-    |> Pathex.over!(path(:decks / deck_id), fn deck -> [card | deck] end)
+    |> Pathex.over!(path(:decks / deck_id), fn deck ->
+      index =
+        case position do
+          "random" -> :rand.uniform(length(deck))
+          "first" -> 0
+          "last" -> length(deck)
+        end
+
+      List.insert_at(deck, index, card)
+    end)
   end
 
   def money_change(game, player, diff) do
@@ -111,8 +125,9 @@ defmodule Boom.Ankh do
 
   ###############################################################
 
-  def find_card(game) do
-    game
-    |> Pathex.view!(path(:decks) ~> Lenses.star())
+  def find_card(game, card_id) do
+    Map.values(game.decks)
+    |> List.flatten()
+    |> Enum.find(fn card -> card.id == card_id end)
   end
 end
