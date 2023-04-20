@@ -25,8 +25,22 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import "../rpgui/rpgui"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+let Hooks = {}
+Hooks.PanzoomHook = {
+  mounted() {
+    window[`panzoom_${this.el.id}`] = panzoom(this.el);
+  },
+  beforeUpdate() {
+    window[`panzoom_${this.el.id}`].pause();
+  },
+  updated() {
+    window[`panzoom_${this.el.id}`].resume();
+  }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
+  hooks: Hooks,
   metadata: {
     click: (e, el) => {
       // var boundingRect = el.getBoundingClientRect();

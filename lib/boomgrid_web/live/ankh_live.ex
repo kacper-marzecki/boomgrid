@@ -27,15 +27,21 @@ defmodule BoomWeb.AnkhLive do
         <div class="framed flex flex-col justify-center w-1/2 h-full ">
           <%!-- UI  --%>
           <div class="flex h-[55%]">
-            <%!-- Gracze  --%>
+            <%!-- GRACZE  --%>
             <div class="framed-grey w-[30%] ">
-              <%!-- Jeden gracz  --%>
               <div
                 :for={player <- Map.keys(@game.money)}
                 class="framed-grey cursor-rpg"
                 phx-click={JS.push("player_clicked", value: %{player: player})}
               >
-                <p><%= player %> <%= @game.money[player] %> <%= @game.colors[player] %></p>
+                <p>
+                  <%= player %> $<%= @game.money[player] %>
+                  <span
+                    class="h-[20px] w-[20px] inline-block"
+                    style={"background-color: #{@game.colors[player]};"}
+                  >
+                  </span>
+                </p>
               </div>
               <button
                 :if={can_join(@game, @player)}
@@ -57,7 +63,7 @@ defmodule BoomWeb.AnkhLive do
                       class={"rpgui-button w-full #{deck == @displayed_deck && "golden"}"}
                       phx-click={JS.push("deck_clicked", value: %{deck_id: deck})}
                     >
-                      <p>
+                      <p style="text-align:justify;">
                         <span style="font-size: 2em !important;">♧</span> <%= deck_display_name(deck) %>
                       </p>
                     </button>
@@ -68,8 +74,40 @@ defmodule BoomWeb.AnkhLive do
                       class="rpgui-button w-full"
                       phx-click={JS.push("place_token_clicked")}
                     >
-                      <p>pionek</p>
+                      <p>pionek TODO</p>
                     </button>
+                    <button
+                      type="button"
+                      class="rpgui-button w-full"
+                      data-confirm={"Potasować #{deck_display_name(@displayed_deck)}?"}
+                      phx-click={JS.push("shuffle_deck_clicked")}
+                    >
+                      <p>potasuj</p>
+                    </button>
+                    <button
+                      :if={!Enum.empty?(@game.decks[:table])}
+                      type="button"
+                      class="rpgui-button w-full"
+                      phx-click={JS.push("end_turn_clicked")}
+                    >
+                      <p>Koniec tury</p>
+                    </button>
+                  </div>
+                <% {:player_selected, player} -> %>
+                  <div class="flex flex-col justify-around items-center">
+                    <div class="flex flex-row justify-around">
+                      <button
+                        :for={amount <- [-1, +1]}
+                        type="button"
+                        class="rpgui-button "
+                        phx-click={
+                          JS.push("change_player_money", value: %{diff: amount, player: player})
+                        }
+                      >
+                        <p><%= amount %> $</p>
+                      </button>
+                    </div>
+                    <.cancel_button />
                   </div>
                 <% {:card_view, card} -> %>
                   <div class="w-1/2">
@@ -158,6 +196,7 @@ defmodule BoomWeb.AnkhLive do
         <div class="framed overflow-hidden w-1/2 h-full">
           <div
             id="board"
+            phx-hook="PanzoomHook"
             style="
             height: 100%;
             width: 100%;
@@ -177,16 +216,7 @@ defmodule BoomWeb.AnkhLive do
         </div>
       </div>
     </div>
-    <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js">
-    </script>
-    <script>
-        var element = document.querySelector('#board')
-        window.boardPanzoom = panzoom(element)
-        boardPanzoom.on('transform', function(e) {
-      // This event will be called along with events above.
-      console.log('Fired when any transformation has happened', e);
-      });
-    </script>
+    <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js"/>
     """
   end
 
@@ -338,7 +368,7 @@ defmodule BoomWeb.AnkhLive do
 
       _ ->
         player = String.to_existing_atom(player_string)
-        {:noreply, socket |> assign(displayed_deck: player)}
+        {:noreply, socket |> assign(displayed_deck: player, action: {:player_selected, player})}
     end
   end
 
@@ -379,6 +409,16 @@ defmodule BoomWeb.AnkhLive do
 
   def handle_event("token_placement_token_chosen", %{"token" => token_id}, socket) do
     {:noreply, socket |> assign(action: {:token_placement, token_id})}
+  end
+
+  def handle_event("change_player_money", %{"diff" => diff, "player" => player_string}, socket) do
+    player = String.to_existing_atom(player_string)
+
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.money_change(game, player, diff)
+    end)
+
+    {:noreply, socket}
   end
 
   def handle_event(
@@ -472,6 +512,22 @@ defmodule BoomWeb.AnkhLive do
         {nil, _} -> socket
         {selected_entity_id, :normal} -> assign(socket, mode: {:move, selected_entity_id})
       end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("end_turn_clicked", _payload, socket) do
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.move_all_cards_from_deck_to_deck(game, :table, :graveyard)
+    end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("shuffle_deck_clicked", _payload, socket) do
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.shuffle_deck(game, socket.assigns.displayed_deck)
+    end)
 
     {:noreply, socket}
   end

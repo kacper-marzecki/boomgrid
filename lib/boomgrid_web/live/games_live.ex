@@ -49,13 +49,13 @@ defmodule BoomWeb.GamesLive do
 
     cond do
       String.contains?(game_id, "ankh") ->
-        push_redirect(
+        push_navigate(
           socket,
           to: BoomWeb.Router.Helpers.live_path(socket, BoomWeb.AnkhLive, game_id)
         )
 
       true ->
-        push_redirect(
+        push_navigate(
           socket,
           to: BoomWeb.Router.Helpers.live_path(socket, BoomWeb.GameLive, game_id)
         )
