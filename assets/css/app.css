@@ -189,3 +189,7 @@
 .cursor-rpg {
   cursor: url("../images/rpgui//cursor/point.png") 10 0, auto;
 }
+
+.rpgui-content * {
+  image-rendering: unset;
+}

@@ -24,7 +24,7 @@ defmodule Boom.LegacyGameServer do
   end
 
   def start_new_game() do
-    game_id = :rand.uniform(100_000)
+    game_id = "boomgrid/#{:rand.uniform(100_000)}"
 
     name = {:via, Registry, {Boom.GameRegistry, game_process_name(game_id)}}
 

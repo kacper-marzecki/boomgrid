@@ -18,21 +18,13 @@
     </script>
   </head>
   <body>
-    <header>
-      <section>
-        <nav>
           <ul>
             Cześć <%= @current_user %> :)
             <li><%= link("LiveDashboard", to: Routes.live_dashboard_path(@conn, :home)) %></li>
             <%!-- <li><%= link("Wyloguj sie", to: "/session/delete") %></li> --%>
-            <li><%= link("games", to: "/games") %></li>
+            <li ><%= link("games", to: "/games") %></li>
             <li><%= link("sprites", to: "/sprites") %></li>
-            <li><%= link("board", to: "/board") %></li>
-            <li><%= link("ankh", to: ~p"/ankh") %></li>
           </ul>
-        </nav>
-      </section>
-    </header>
     <%= @inner_content %>
   </body>
 </html>

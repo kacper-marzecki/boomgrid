@@ -8,11 +8,6 @@ defmodule BoomWeb.AnkhLive do
     <pre style="overflow: scroll; height: 200px;">
     <%= inspect(assigns, pretty: true) %>
     </pre>
-    <style>
-      .rpgui-content * {
-        image-rendering: unset;
-      }
-    </style>
     <div class="rpgui-content" phx-window-keyup="key_clicked">
       <div class="flex flex-row h-screen  w-screen px-6 gap-4">
         <div class="framed flex flex-col justify-center w-1/2 h-full ">
