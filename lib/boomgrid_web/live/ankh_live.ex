@@ -9,15 +9,6 @@ defmodule BoomWeb.AnkhLive do
     <%= inspect(assigns, pretty: true) %>
     </pre>
     <style>
-      .card-row{
-        <%!-- display: flex;
-        justify-content: center;
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 1em;
-        padding: 1em 0; --%>
-      }
-
       .rpgui-content * {
         image-rendering: unset;
       }
@@ -74,7 +65,7 @@ defmodule BoomWeb.AnkhLive do
                       class="rpgui-button w-full"
                       phx-click={JS.push("place_token_clicked")}
                     >
-                      <p>pionek TODO</p>
+                      <p>pionek</p>
                     </button>
                     <button
                       type="button"
@@ -107,6 +98,17 @@ defmodule BoomWeb.AnkhLive do
                         <p><%= amount %> $</p>
                       </button>
                     </div>
+                    <.cancel_button />
+                  </div>
+                <% {:token_selected, token} -> %>
+                  <div class="flex flex-col justify-around items-center">
+                    <button
+                      type="button"
+                      class="rpgui-button "
+                      phx-click={JS.push("remove_token", value: %{token_id: token.id})}
+                    >
+                      <p>usuń</p>
+                    </button>
                     <.cancel_button />
                   </div>
                 <% {:card_view, card} -> %>
@@ -173,11 +175,24 @@ defmodule BoomWeb.AnkhLive do
                     <.cancel_button />
                   </div>
                 <% {:token_placement, nil} -> %>
-                  token placement mock
+                  <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
+                    <button
+                      :for={type <- [:disturbance, :demon, :troll]}
+                      type="button"
+                      class="rpgui-button w-1/2"
+                      phx-click={JS.push("token_placement_token_chosen", value: %{token: type})}
+                    >
+                      <p><%= token_type_display_name(type) %></p>
+                    </button>
+                    <.cancel_button />
+                  </div>
+                <% {:token_placement, token_type} -> %>
+                  <p>Kliknij na planszę żeby położyć <%= token_type_display_name(token_type) %></p>
+                  <.cancel_button />
               <% end %>
             </div>
           </div>
-          <%!-- aktualna tura ? --%>
+          <%!-- ZAZNACZONA TALIA --%>
           <div class="h-[5%] flex items-center">
             <p><%= deck_display_name(@displayed_deck) %></p>
           </div>
@@ -209,14 +224,15 @@ defmodule BoomWeb.AnkhLive do
             background-repeat: repeat;
           "
           >
-            <%= for entity <- @entities do %>
-              <%= to_html(entity, @viewport_anchor, @viewport_size, @selected_entity_id) %>
+            <%= for token <-@game.tokens  do %>
+              <% is_selected = match?({:token_selected, ^token}, @action) %>
+              <%= to_html(token, @viewport_anchor, @viewport_size, is_selected) %>
             <% end %>
           </div>
         </div>
       </div>
     </div>
-    <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js"/>
+    <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js" />
     """
   end
 
@@ -230,20 +246,8 @@ defmodule BoomWeb.AnkhLive do
     """
   end
 
-  def directional_button(assigns) do
-    ~H"""
-    <button
-      type="button"
-      class="rpgui-button"
-      phx-click={JS.push("map_move_clicked", value: %{direction: @direction})}
-    >
-      <p>X</p>
-    </button>
-    """
-  end
-
   def card(assigns) do
-    # nie wiem czemu ale class="inline-block" nie nadaje `display: inline-block;`
+    #  nie wiem czemu ale class="inline-block" nie nadaje display: inline-block
     assigns =
       assigns
       |> Phoenix.Component.assign_new(:class, fn _ -> "" end)
@@ -259,35 +263,26 @@ defmodule BoomWeb.AnkhLive do
     """
   end
 
-  def to_html(entity, viewport_anchor, viewport_size, selected_entity_id) do
-    case entity do
-      %{sprite: sprite, position: entity_position, id: id} ->
-        # bottom, left, width
+  def to_html(entity, viewport_anchor, viewport_size, is_selected) do
+    %{sprite: sprite, position: entity_position, id: id} = entity
 
-        assigns = %{
-          id: id,
-          left: (entity_position.x - viewport_anchor.x) / viewport_size * 100,
-          bottom: (entity_position.y - viewport_anchor.y) / viewport_size * 100,
-          height: sprite.size / viewport_size * 100,
-          sprite_url: sprite.url,
-          selected?: selected_entity_id == id,
-          entity_position: entity_position,
-          sprite_size: sprite.size
-        }
+    assigns = %{
+      id: id,
+      left: (entity_position.x - viewport_anchor.x) / viewport_size * 100,
+      bottom: (entity_position.y - viewport_anchor.y) / viewport_size * 100,
+      height: sprite.size / viewport_size * 100,
+      sprite_url: sprite.url,
+      selected?: is_selected
+    }
 
-        ~H"""
-        <div
-          style={"position: absolute; left: #{@left}%; bottom: #{@bottom}%;  width: max-content; height: #{@height}%; #{@selected? && "background-color: white;"}"}
-          phx-click={JS.push("entity_clicked", value: %{target: "#{@id}"})}
-          title={"#{inspect(@entity_position)} #{@sprite_size}"}
-        >
-          <img src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
-        </div>
-        """
-
-      _ ->
-        nil
-    end
+    ~H"""
+    <div
+      style={"position: absolute; left: #{@left}%; bottom: #{@bottom}%;  width: max-content; height: #{@height}%; #{@selected? && "background-color: white;"}"}
+      phx-click={JS.push("token_clicked", value: %{target: "#{@id}"})}
+    >
+      <img src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
+    </div>
+    """
   end
 
   def show_tab(tab) do
@@ -302,7 +297,6 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def mount(%{"game_id" => game_id}, %{"current_user" => username} = session, socket) do
-    entities = mock_entities()
     player = String.to_atom(username)
 
     if connected?(socket) do
@@ -322,9 +316,14 @@ defmodule BoomWeb.AnkhLive do
           # BOARD assigns
           viewport_anchor: %{x: 0, y: 0, z: 0},
           viewport_size:
-            entities |> Enum.map(fn entity -> entity[:sprite][:size] || 0 end) |> Enum.max(),
-          entities: entities,
-          selected_entity_id: nil,
+            game.tokens
+            |> Enum.find(fn
+              %{background: true} -> true
+              _ -> false
+            end)
+            |> case do
+              background -> background.sprite.size
+            end,
           mode: :normal
         )
       else
@@ -407,8 +406,8 @@ defmodule BoomWeb.AnkhLive do
     {:noreply, socket |> assign(action: {:token_placement, nil})}
   end
 
-  def handle_event("token_placement_token_chosen", %{"token" => token_id}, socket) do
-    {:noreply, socket |> assign(action: {:token_placement, token_id})}
+  def handle_event("token_placement_token_chosen", %{"token" => token_type}, socket) do
+    {:noreply, socket |> assign(action: {:token_placement, String.to_existing_atom(token_type)})}
   end
 
   def handle_event("change_player_money", %{"diff" => diff, "player" => player_string}, socket) do
@@ -421,96 +420,77 @@ defmodule BoomWeb.AnkhLive do
     {:noreply, socket}
   end
 
+  def handle_event("remove_token", %{"token_id" => token_id}, socket) do
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.remove_token(game, token_id)
+    end)
+
+    {:noreply, socket |> assign(action: nil)}
+  end
+
   def handle_event(
-        "entity_clicked",
-        %{"target" => id, "x" => clicked_x_percent, "y" => clicked_y_percent} = payload,
+        "token_clicked",
+        %{"target" => id, "x" => clicked_x_percent, "y" => clicked_y_percent} = _payload,
         socket
       ) do
-    IO.inspect(payload, label: "entity_clicked")
     {id, _} = Integer.parse(id)
 
-    clicked_entity = get_entity_by_id(socket, id)
+    clicked_token = get_token_by_id(socket, id)
 
-    move_entity = fn moving_entity_id ->
-      socket.assigns.entities
-      |> Enum.map(fn
-        %{id: ^moving_entity_id} = entity ->
-          %{z: z} = clicked_entity.position
-          moving_entity = get_entity_by_id(socket, moving_entity_id)
+    %{x: anchor_x, y: anchor_y} = socket.assigns.viewport_anchor
 
-          %{x: anchor_x, y: anchor_y} = socket.assigns.viewport_anchor
-
-          x =
-            clicked_x_percent / 100 * socket.assigns.viewport_size + anchor_x +
-              -0.5 * moving_entity.sprite.size
-
-          y =
-            clicked_y_percent / 100 * socket.assigns.viewport_size + anchor_y +
-              -0.5 * moving_entity.sprite.size
-
-          position =
-            %{x: x, y: y, z: z}
-            |> IO.inspect()
-
-          Map.put(entity, :position, position)
-
-        other ->
-          other
-      end)
-    end
+    clicked_at = %{
+      x: clicked_x_percent / 100 * socket.assigns.viewport_size + anchor_x,
+      y: clicked_y_percent / 100 * socket.assigns.viewport_size + anchor_y
+    }
 
     socket =
-      case {socket.assigns.mode, clicked_entity} do
-        {:normal, %{selectable: true}} ->
-          assign(socket, selected_entity_id: id)
+      case {socket.assigns.action, clicked_token} do
+        {_, %{selectable: true}} ->
+          assign(socket, action: {:token_selected, clicked_token})
+
+        {{:token_placement, token_type}, %{background: true}} ->
+          token_template = Boom.Ankh.new_token(token_type)
+          offset = -0.5 * token_template.sprite.size
+
+          new_token =
+            token_template
+            |> Map.merge(%{
+              position: %{
+                x: clicked_at.x + offset,
+                y: clicked_at.y + offset
+              },
+              selectable: true
+            })
+
+          Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+            Boom.Ankh.place_token(game, new_token)
+          end)
+
+          assign(socket, action: nil)
 
         # select entity
-        {{:move, moving_entity_id}, %{background: true}} ->
-          updated_entities = move_entity.(moving_entity_id)
-          assign(socket, entities: updated_entities)
+        {{:token_selected, selected_token}, %{background: true}} ->
+          offset = -0.5 * selected_token.sprite.size
 
-        {{:move, moving_entity_id}, %{id: moving_entity_id}} ->
-          updated_entities = move_entity.(moving_entity_id)
-          assign(socket, entities: updated_entities)
+          target_position = %{
+            x: clicked_at.x + offset,
+            y: clicked_at.y + offset
+          }
+
+          Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+            Boom.Ankh.move_token(
+              game,
+              selected_token.id,
+              target_position.x,
+              target_position.y
+            )
+          end)
+
+          assign(socket, action: nil)
 
         _ ->
-          assign(socket, selected_entity_id: nil, mode: :normal)
-      end
-
-    {:noreply, socket}
-  end
-
-  def handle_event("map_move_clicked", %{"direction" => direction}, socket) do
-    IO.inspect(direction)
-
-    shift_size = socket.assigns[:viewport_size] / 4
-    shift_x = direction["x"] * shift_size
-    shift_y = direction["y"] * shift_size
-
-    anchor = socket.assigns.viewport_anchor
-    viewport_anchor = %{x: anchor.x + shift_x, y: anchor.y + shift_y}
-
-    {:noreply, socket |> assign(viewport_anchor: viewport_anchor)}
-  end
-
-  def handle_event("map_zoom_clicked", %{"direction" => direction}, socket) do
-    rate =
-      case direction do
-        "in" -> 0.9
-        "out" -> 1.1
-      end
-
-    viewport_size = max(socket.assigns[:viewport_size] * rate, 50)
-
-    {:noreply, socket |> assign(viewport_size: viewport_size)}
-  end
-
-  def handle_event("move_clicked", _payload, socket) do
-    socket =
-      case {socket.assigns.selected_entity_id, socket.assigns.mode} do
-        {_, {:move, _}} -> assign(socket, mode: :normal)
-        {nil, _} -> socket
-        {selected_entity_id, :normal} -> assign(socket, mode: {:move, selected_entity_id})
+          assign(socket, action: nil)
       end
 
     {:noreply, socket}
@@ -548,9 +528,9 @@ defmodule BoomWeb.AnkhLive do
     {:noreply, socket |> assign(game: game)}
   end
 
-  def get_entity_by_id(socket, id) do
-    socket.assigns.entities
-    |> Enum.find(fn entity -> entity.id == id end)
+  def get_token_by_id(socket, id) do
+    socket.assigns.game.tokens
+    |> Enum.find(fn token -> token.id == id end)
   end
 
   def can_join(game, player) do
@@ -603,31 +583,30 @@ defmodule BoomWeb.AnkhLive do
     end
   end
 
+  def token_type_display_name(token_type) do
+    case token_type do
+      :demon -> "demon"
+      :disturbance -> "niepokoje"
+      :troll -> "troll"
+    end
+  end
+
   def gen_id(), do: System.unique_integer([:positive, :monotonic])
 
-  # TODO zoom nie dziala
-  def mock_entities() do
-    sprites_and_background = [
+  def starting_tokens() do
+    [
       %{
         sprite: %{url: "/images/ankh_morpork_plansza.jpg", size: 500},
-        position: %{x: 0, y: 0, z: 0},
+        position: %{x: 0, y: 0},
         id: gen_id(),
         background: true
-      },
-      %{
-        sprite: %{url: "/images/floor.png", size: 20},
-        position: %{x: 0, y: 0, z: 0},
-        id: gen_id(),
-        selectable: true
-      },
-      %{
-        sprite: %{url: "/images/action_1.png", size: 20},
-        position: %{x: 50, y: 50, z: 0},
-        id: gen_id(),
-        selectable: true
       }
+      # ,%{
+      #   sprite: %{url: "/images/action_1.png", size: 20},
+      #   position: %{x: 250, y: 250},
+      #   id: gen_id(),
+      #   selectable: true
+      # }
     ]
-
-    sprites_and_background
   end
 end

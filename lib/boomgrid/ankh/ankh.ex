@@ -14,7 +14,7 @@ defmodule Boom.Ankh do
         districts: [],
         table: []
       },
-      tokens: [],
+      tokens: starting_tokens(),
       colors: %{}
     }
   end
@@ -30,8 +30,27 @@ defmodule Boom.Ankh do
     end
   end
 
-  def place_token(game, %{x: _x, y: _y, sprite: _sprite} = agent) do
-    Pathex.over!(game, path(:tokens), fn tokens -> [Map.put(agent, :id, gen_id()) | tokens] end)
+  def starting_tokens() do
+    [
+      %{
+        sprite: %{url: "/images/ankh_morpork_plansza.jpg", size: 500},
+        position: %{x: 0, y: 0, z: 0},
+        id: gen_id(),
+        background: true
+      }
+      # ,%{
+      #   sprite: %{url: "/images/action_1.png", size: 20},
+      #   position: %{x: 250, y: 250, z: 0},
+      #   id: gen_id(),
+      #   selectable: true
+      # }
+    ]
+  end
+
+  def place_token(game, %{} = token) do
+    Pathex.over!(game, path(:tokens), fn tokens ->
+      [token | Enum.reverse(tokens)] |> Enum.reverse()
+    end)
   end
 
   def remove_token(game, id) do
@@ -40,10 +59,10 @@ defmodule Boom.Ankh do
   end
 
   def move_token(game, id, x, y) do
-    p = path(:tokens) ~> Lenses.star() ~> Lenses.matching(%{id: ^id})
+    p = path(:tokens) ~> Lenses.star() ~> Lenses.matching(%{id: ^id}) ~> path(:position)
 
-    Pathex.over!(game, p, fn token ->
-      Map.merge(token, %{x: x, y: y})
+    Pathex.over!(game, p, fn token_position ->
+      Map.merge(token_position, %{x: x, y: y})
     end)
   end
 
@@ -120,6 +139,36 @@ defmodule Boom.Ankh do
 
   def colors() do
     [:blue, :red, :green, :yellow]
+  end
+
+  def built_in_token_types() do
+  end
+
+  def token_types() do
+    [
+      %{type: :blue_agent, sprite: %{url: "/images/ankh/blue_agent.png", size: 20}},
+      %{type: :blue_building, sprite: %{url: "/images/ankh/blue_building.png", size: 20}},
+      %{type: :demon, sprite: %{url: "/images/ankh/demon.png", size: 20}},
+      %{type: :disturbance, sprite: %{url: "/images/ankh/disturbance.png", size: 20}},
+      %{type: :green_agent, sprite: %{url: "/images/ankh/green_agent.png", size: 20}},
+      %{type: :green_building, sprite: %{url: "/images/ankh/green_building.png", size: 20}},
+      %{type: :red_agent, sprite: %{url: "/images/ankh/red_agent.png", size: 20}},
+      %{type: :red_building, sprite: %{url: "/images/ankh/red_building.png", size: 20}},
+      %{type: :troll, sprite: %{url: "/images/ankh/troll.png", size: 20}},
+      %{type: :yellow_agent, sprite: %{url: "/images/ankh/yellow_agent.png", size: 20}},
+      %{type: :yellow_building, sprite: %{url: "/images/ankh/yellow_building.png", size: 20}}
+    ]
+  end
+
+  def new_token(token_type) do
+    token_types()
+    |> Enum.find(fn
+      %{type: ^token_type} -> true
+      _ -> false
+    end)
+    |> case do
+      map -> Map.put(map, :id, gen_id())
+    end
   end
 
   def gen_id(), do: System.unique_integer([:positive, :monotonic])
