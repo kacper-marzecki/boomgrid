@@ -330,7 +330,7 @@ defmodule BoomWeb.AnkhLive do
       end)
     end
 
-    {:noreply, socket}
+    {:noreply, socket |> assign(selected: nil)}
   end
 
   def handle_event("move_card", %{"card_id" => card_id}, socket) do
@@ -361,7 +361,6 @@ defmodule BoomWeb.AnkhLive do
   @doc """
   token_id - color_type
   e.g. troll blue_agent red_building disturbance
-
   """
   def handle_event("token_placement_token_chosen", %{"token" => token_id}, socket) do
     {:noreply, socket |> assign(selected: nil, action: {:token_placement, nil})}
@@ -505,6 +504,16 @@ defmodule BoomWeb.AnkhLive do
       :character -> [:characters]
       :district -> [:districts]
     end
+  end
+
+  def placeable_tokens(game) do
+    colorful_tokens =
+      for color <- Map.values(game.colors),
+          type <- ["agent", "building"] do
+        "#{color}_#{type}"
+      end
+
+    colorful_tokens ++ ["troll", "disturbance", "demon"]
   end
 
   def built_in_decks do
