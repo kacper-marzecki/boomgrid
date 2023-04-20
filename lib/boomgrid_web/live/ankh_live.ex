@@ -48,7 +48,7 @@ defmodule BoomWeb.AnkhLive do
             </div>
             <%!-- OPCJE --%>
             <div class="framed-grey w-[70%] h-full flex flex-row justify-around">
-              <%= case @selected do %>
+              <%= case @action do %>
                 <% nil -> %>
                   <div class="mx-3 flex flex-col items-center justify-between">
                     <button
@@ -71,65 +71,71 @@ defmodule BoomWeb.AnkhLive do
                       <p>pionek</p>
                     </button>
                   </div>
-                <% {:card, card} -> %>
+                <% {:card_view, card} -> %>
+                  <div class="w-1/2">
+                    <.card class="transition hover:scale-[1.5] hover:translate-y-4" card={card} />
+                  </div>
+                  <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
+                    <%!-- ZAGRAJ KARTE --%>
+                    <button
+                      :if={can_play(@game, @player, card.id)}
+                      type="button"
+                      class="rpgui-button w-1/2"
+                      phx-click={JS.push("play_card", value: %{card_id: card.id})}
+                    >
+                      <p>Zagraj</p>
+                    </button>
+                    <%!-- PRZENIEŚ KARTE --%>
+                    <button
+                      type="button"
+                      class="rpgui-button w-1/2"
+                      phx-click={JS.push("move_card", value: %{card_id: card.id})}
+                    >
+                      <p>Przenieś</p>
+                    </button>
+                    <.cancel_button />
+                  </div>
+                <% {:move_card, card, nil} -> %>
                   <div class="w-1/2">
                     <.card class="transition hover:scale-[1.5] hover:translate-y-4" card={card} />
                   </div>
                   <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
                     <%!-- PRZENIEŚ KARTE --%>
-                    <%= case @action do %>
-                      <% {:move_card, card, nil} -> %>
-                        <button
-                          :for={deck <- what_decks_can_it_move_to?(card)}
-                          type="button"
-                          class="rpgui-button w-1/2"
-                          phx-click={JS.push("card_move_target_chosen", value: %{deck_id: deck})}
-                        >
-                          <p><%= deck_display_name(deck) %></p>
-                        </button>
-                      <% {:move_card, _card, _deck} -> %>
-                        <button
-                          :for={
-                            {position, position_text} <- [
-                              {"first", "Na wierzch"},
-                              {"last", "Na spód"},
-                              {"random", "Wtasuj"}
-                            ]
-                          }
-                          type="button"
-                          class="rpgui-button w-1/2"
-                          phx-click={
-                            JS.push("card_move_target_position_chosen", value: %{position: position})
-                          }
-                        >
-                          <p><%= position_text %></p>
-                        </button>
-                      <% _ -> %>
-                        <%!-- ZAGRAJ KARTE --%>
-                        <button
-                          :if={can_play(@game, @player, card.id)}
-                          type="button"
-                          class="rpgui-button w-1/2"
-                          phx-click={JS.push("play_card", value: %{card_id: card.id})}
-                        >
-                          <p>Zagraj</p>
-                        </button>
-                        <%!-- PRZENIEŚ KARTE --%>
-                        <button
-                          type="button"
-                          class="rpgui-button w-1/2"
-                          phx-click={JS.push("move_card", value: %{card_id: card.id})}
-                        >
-                          <p>Przenieś</p>
-                        </button>
-                    <% end %>
-
-                    <div>
-                      <button type="button" class="rpgui-button" phx-click={JS.push("cancel_clicked")}>
-                        <p>Anuluj</p>
-                      </button>
-                    </div>
+                    <button
+                      :for={deck <- what_decks_can_it_move_to?(card)}
+                      type="button"
+                      class="rpgui-button w-1/2"
+                      phx-click={JS.push("card_move_target_chosen", value: %{deck_id: deck})}
+                    >
+                      <p><%= deck_display_name(deck) %></p>
+                    </button>
+                    <.cancel_button />
                   </div>
+                <% {:move_card, card, _deck} -> %>
+                  <div class="w-1/2">
+                    <.card class="transition hover:scale-[1.5] hover:translate-y-4" card={card} />
+                  </div>
+                  <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
+                    <button
+                      :for={
+                        {position, position_text} <- [
+                          {"first", "Na wierzch"},
+                          {"last", "Na spód"},
+                          {"random", "Wtasuj"}
+                        ]
+                      }
+                      type="button"
+                      class="rpgui-button w-1/2"
+                      phx-click={
+                        JS.push("card_move_target_position_chosen", value: %{position: position})
+                      }
+                    >
+                      <p><%= position_text %></p>
+                    </button>
+                    <.cancel_button />
+                  </div>
+                <% {:token_placement, nil} -> %>
+                  token placement mock
               <% end %>
             </div>
           </div>
@@ -174,9 +180,23 @@ defmodule BoomWeb.AnkhLive do
     <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js">
     </script>
     <script>
-      var element = document.querySelector('#board')
-      window.boardPanzoom = panzoom(element)
+        var element = document.querySelector('#board')
+        window.boardPanzoom = panzoom(element)
+        boardPanzoom.on('transform', function(e) {
+      // This event will be called along with events above.
+      console.log('Fired when any transformation has happened', e);
+      });
     </script>
+    """
+  end
+
+  def cancel_button(assigns) do
+    ~H"""
+    <div>
+      <button type="button" class="rpgui-button" phx-click={JS.push("cancel_clicked")}>
+        <p>Anuluj</p>
+      </button>
+    </div>
     """
   end
 
@@ -267,7 +287,6 @@ defmodule BoomWeb.AnkhLive do
           player: player,
           game_id: game_id,
           # BOARD assigns
-          selected: nil,
           action: nil,
           displayed_deck: :table,
           # BOARD assigns
@@ -303,7 +322,7 @@ defmodule BoomWeb.AnkhLive do
 
   def handle_event("card_clicked", %{"card_id" => card_id}, socket) do
     card = Boom.Ankh.find_card(socket.assigns.game, card_id)
-    {:noreply, socket |> assign(selected: {:card, card}, action: nil)}
+    {:noreply, socket |> assign(action: {:card_view, card})}
   end
 
   def handle_event("deck_clicked", %{"deck_id" => deck_string}, socket) do
@@ -330,7 +349,7 @@ defmodule BoomWeb.AnkhLive do
       end)
     end
 
-    {:noreply, socket |> assign(selected: nil)}
+    {:noreply, socket |> assign(action: nil)}
   end
 
   def handle_event("move_card", %{"card_id" => card_id}, socket) do
@@ -351,19 +370,15 @@ defmodule BoomWeb.AnkhLive do
       Boom.Ankh.move_card_to_deck(game, card.id, deck, position)
     end)
 
-    {:noreply, socket |> assign(action: nil, selected: nil)}
+    {:noreply, socket |> assign(action: nil)}
   end
 
   def handle_event("place_token_clicked", _payload, socket) do
-    {:noreply, socket |> assign(selected: nil, action: {:token_placement, nil})}
+    {:noreply, socket |> assign(action: {:token_placement, nil})}
   end
 
-  @doc """
-  token_id - color_type
-  e.g. troll blue_agent red_building disturbance
-  """
   def handle_event("token_placement_token_chosen", %{"token" => token_id}, socket) do
-    {:noreply, socket |> assign(selected: nil, action: {:token_placement, nil})}
+    {:noreply, socket |> assign(action: {:token_placement, token_id})}
   end
 
   def handle_event(
@@ -372,7 +387,6 @@ defmodule BoomWeb.AnkhLive do
         socket
       ) do
     IO.inspect(payload, label: "entity_clicked")
-    IO.inspect(socket.assigns)
     {id, _} = Integer.parse(id)
 
     clicked_entity = get_entity_by_id(socket, id)
@@ -463,7 +477,7 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def handle_event("cancel_clicked", _payload, socket) do
-    {:noreply, socket |> assign(selected: nil, action: nil)}
+    {:noreply, socket |> assign(action: nil)}
   end
 
   def handle_event("key_clicked", %{"key" => key}, socket) do
