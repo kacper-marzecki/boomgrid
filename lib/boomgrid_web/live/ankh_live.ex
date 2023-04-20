@@ -446,9 +446,6 @@ defmodule BoomWeb.AnkhLive do
 
     socket =
       case {socket.assigns.action, clicked_token} do
-        {_, %{selectable: true}} ->
-          assign(socket, action: {:token_selected, clicked_token})
-
         {{:token_placement, token_type}, %{background: true}} ->
           token_template = Boom.Ankh.new_token(token_type)
           offset = -0.5 * token_template.sprite.size
@@ -469,7 +466,6 @@ defmodule BoomWeb.AnkhLive do
 
           assign(socket, action: nil)
 
-        # select entity
         {{:token_selected, selected_token}, %{background: true}} ->
           offset = -0.5 * selected_token.sprite.size
 
@@ -489,7 +485,32 @@ defmodule BoomWeb.AnkhLive do
 
           assign(socket, action: nil)
 
+        {{:token_selected, %{id: id} = selected_token}, %{id: id}} ->
+          IO.inspect("asd")
+          offset = -0.5 * selected_token.sprite.size
+
+          target_position = %{
+            x: clicked_at.x + offset,
+            y: clicked_at.y + offset
+          }
+
+          Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+            Boom.Ankh.move_token(
+              game,
+              selected_token.id,
+              target_position.x,
+              target_position.y
+            )
+          end)
+
+          assign(socket, action: nil)
+
+        {_, %{selectable: true}} ->
+          assign(socket, action: {:token_selected, clicked_token})
+
         _ ->
+          IO.inspect("ZXC")
+
           assign(socket, action: nil)
       end
 
