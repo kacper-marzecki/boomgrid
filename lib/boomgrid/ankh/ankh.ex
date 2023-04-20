@@ -9,7 +9,7 @@ defmodule Boom.Ankh do
       decks: %{
         graveyard: [],
         events: [],
-        actions: new_cards(1..9, "action"),
+        actions: new_cards(1..9, :action),
         characters: [],
         districts: [],
         table: []
@@ -23,6 +23,7 @@ defmodule Boom.Ankh do
     for id <- range do
       %{
         id: "#{id}",
+        type: type,
         image: "/images/ankh/#{type}_#{id}.png",
         reverse_image: "/images/ankh/#{type}_reverse.png"
       }
