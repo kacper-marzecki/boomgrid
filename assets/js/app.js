@@ -28,13 +28,18 @@ let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("
 let Hooks = {}
 Hooks.PanzoomHook = {
   mounted() {
+    const element = this.el;
+
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       onTouch: function (touchEvent) {
         // the returned boolean tells the library weather to preventDefault
         pushEvent("debug", {
-          touchEventType: touchEvent.type,
+          touchEventType: JSON.stringify(touchEvent),
         });
-        return touchEvent.type != "touchend";
+        // touchEvent.type = "custom_touchend"
+        // element.dispatchEvent("custom_touchend")
+        // return touchEvent.type != "touchend";
+        return false;
       }
     });
 
