@@ -38,6 +38,25 @@ Hooks.PanzoomHook = {
   }
 }
 
+Hooks.BoardToken = {
+  mounted() {
+    const element = this.el
+    this.el.ontouchend = (event) => {
+      var board = document.getElementById("board");
+      if (board) {
+        var boundingRect = board.getBoundingClientRect();
+        var browserX = e.clientX - boundingRect.x;
+        var browserY = e.clientY - boundingRect.y;
+        pushEvent("token_clicked", {
+          id: element.id.substring("token_".length),
+          x: (browserX / boundingRect.width) * 100,
+          y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
+        });
+      }
+    }
+  }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {
   params: { _csrf_token: csrfToken },
   hooks: Hooks,
