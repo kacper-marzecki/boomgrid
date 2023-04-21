@@ -28,7 +28,12 @@ let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("
 let Hooks = {}
 Hooks.PanzoomHook = {
   mounted() {
-    window[`panzoom_${this.el.id}`] = panzoom(this.el);
+    window[`panzoom_${this.el.id}`] = panzoom(this.el, {
+      onTouch: function (touchEvent) {
+        return false; // tells the library to not preventDefault.
+      }
+    });
+
   },
   beforeUpdate() {
     window[`panzoom_${this.el.id}`].pause();
