@@ -32,16 +32,18 @@ Hooks.PanzoomHook = {
 
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       zoomDoubleClickSpeed: 1,
-      // onTouch: function (touchEvent) {
-      //   // the returned boolean tells the library weather to preventDefault
-      //   pushEvent("debug", {
-      //     touchEventType: JSON.stringify(touchEvent),
-      //   });
-      //   // touchEvent.type = "custom_touchend"
-      //   // element.dispatchEvent("custom_touchend")
-      //   // return touchEvent.type != "touchend";
-      //   return false;
-      // }
+      onTouch: function (touchEvent) {
+        // the returned boolean tells the library weather to preventDefault
+        if (touchEvent.type == "touchend") {
+          pushEvent("debug", {
+            touchEventType: JSON.stringify(touchEvent),
+          });
+        }
+        // touchEvent.type = "custom_touchend"
+        // element.dispatchEvent("custom_touchend")
+        // return touchEvent.type != "touchend";
+        return false;
+      }
     });
 
   },
