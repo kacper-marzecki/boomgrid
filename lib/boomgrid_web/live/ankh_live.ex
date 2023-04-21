@@ -208,8 +208,8 @@ defmodule BoomWeb.AnkhLive do
             id="board"
             phx-hook="PanzoomHook"
             style="
-            height: 100%;
-            width: 100%;
+            height: 500px;
+            width: 500px;
             /* do ustawiania `position: absolute` elementow */
             position: relative;
             /* żeby częściowo widoczne elementy były obcinane */
