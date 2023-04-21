@@ -276,7 +276,6 @@ defmodule BoomWeb.AnkhLive do
       id={"token_#{@id}"}
       style={"position: absolute; left: #{@left}%; bottom: #{@bottom}%;  width: max-content; height: #{@height}%; #{@selected? && "background-color: white;"}"}
       phx-click={JS.push("token_clicked", value: %{target: "#{@id}"})}
-      ontouchend="event."
     >
       <img src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
     </button>

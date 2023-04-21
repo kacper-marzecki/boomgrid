@@ -56,6 +56,9 @@ Hooks.BoardToken = {
         var boundingRect = board.getBoundingClientRect();
         var browserX = e.clientX - boundingRect.x;
         var browserY = e.clientY - boundingRect.y;
+        pushEvent("debug", {
+          value: "touchend on BoardToken"
+        });
         pushEvent("token_clicked", {
           id: token_id,
           x: (browserX / boundingRect.width) * 100,
