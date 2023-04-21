@@ -42,7 +42,7 @@ let Hooks = {}
 Hooks.PanzoomHook = {
   mounted() {
     const element = this.el;
-    const push_event = pushEvent;
+    const push_event = this.pushEvent;
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       zoomDoubleClickSpeed: 1,
       onTouch: function (touchEvent) {
