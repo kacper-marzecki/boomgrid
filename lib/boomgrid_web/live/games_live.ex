@@ -74,10 +74,10 @@ defmodule BoomWeb.GamesLive do
   def handle_event("go_to_game", %{"game_id" => game_id}, socket) do
     socket =
       cond do
-        String.contains(game_id, "ankh") ->
+        String.contains?(game_id, "ankh") ->
           goto_ankh_morpork(socket, game_id)
 
-        String.contains(game_id, "boomgrid") ->
+        String.contains?(game_id, "boomgrid") ->
           goto_boomgrid(socket, game_id)
       end
 
