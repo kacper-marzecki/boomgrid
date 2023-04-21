@@ -273,7 +273,6 @@ defmodule BoomWeb.AnkhLive do
 
     ~H"""
     <button
-      phx-hook="BoardToken"
       id={"token_#{@id}"}
       style={"position: absolute; left: #{@left}%; bottom: #{@bottom}%;  width: max-content; height: #{@height}%; #{@selected? && "background-color: white;"}"}
       phx-click={JS.push("token_clicked", value: %{target: "#{@id}"})}

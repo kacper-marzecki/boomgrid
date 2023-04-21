@@ -32,7 +32,7 @@ function compute_token_clicked_payload(token_id, clientX, clientY) {
   const browserX = clientX - boundingRect.x;
   const browserY = clientY - boundingRect.y;
   return {
-    id: token_id,
+    target: token_id,
     x: (browserX / boundingRect.width) * 100,
     y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
   };
@@ -41,32 +41,19 @@ function compute_token_clicked_payload(token_id, clientX, clientY) {
 let Hooks = {}
 Hooks.PanzoomHook = {
   mounted() {
-    const element = this.el;
-    const push_event = this.pushEvent;
+    const push_event = (event, payload) => this.pushEvent(event, payload);
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       zoomDoubleClickSpeed: 1,
       onTouch: function (touchEvent) {
-        // the returned boolean tells the library weather to preventDefault
-        // pushEvent("debug", {
-        //   touchEventType: JSON.stringify(touchEvent),
-        // });
         try {
           const touch = touchEvent.targetTouches[0];
-          const token_id = touch.target.id.substring("token_image".length);
+          const token_id = touch.target.id.substring("token_image_".length);
           push_event("token_clicked", compute_token_clicked_payload(token_id, touch.clientX, touch.clientY))
         } catch (error) {
           const log = document.getElementById("debug_div");
           log.innerText = `${error}\n${log.innerText}`;
           log.innerText = `${error.stack}\n${log.innerText}`;
         }
-
-        // log.innerText = `${touch.target}\n${log.innerText}`;
-        // log.innerText = `${touch.target.id}\n${log.innerText}`;
-        // log.innerText = `${touch.clientX}\n${log.innerText}`;
-        // log.innerText = `${touch.clientY}\n${log.innerText}`;
-        // touchEvent.type = "custom_touchend"
-        // element.dispatchEvent("custom_touchend")
-        // return touchEvent.type != "touchend";
         return true;
       }
     });
@@ -77,28 +64,6 @@ Hooks.PanzoomHook = {
   },
   updated() {
     window[`panzoom_${this.el.id}`].resume();
-  }
-}
-
-Hooks.BoardToken = {
-  mounted() {
-    const token_id = this.el.id.substring("token_".length);
-    // this.el.addEventListener("touchend", (event) => {
-    //   var board = document.getElementById("board");
-    //   if (board) {
-    //     var boundingRect = board.getBoundingClientRect();
-    //     var browserX = e.clientX - boundingRect.x;
-    //     var browserY = e.clientY - boundingRect.y;
-    //     pushEvent("debug", {
-    //       value: "touchend on BoardToken"
-    //     });
-    //     pushEvent("token_clicked", {
-    //       id: token_id,
-    //       x: (browserX / boundingRect.width) * 100,
-    //       y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
-    //     });
-    //   }
-    // });
   }
 }
 
