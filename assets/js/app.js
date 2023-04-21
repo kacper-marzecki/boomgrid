@@ -37,9 +37,8 @@ Hooks.PanzoomHook = {
         // pushEvent("debug", {
         //   touchEventType: JSON.stringify(touchEvent),
         // });
-        const text = document.createTextNode(`${JSON.stringify(window.event)} X \n`);
-        const debugDiv = document.getElementById("debug_div");
-        debugDiv.appendChild(text);
+        const log = document.getElementById("debug_div");
+        log.innerText = `${touchEvent.type}\n${log.innerText}`;
         // touchEvent.type = "custom_touchend"
         // element.dispatchEvent("custom_touchend")
         // return touchEvent.type != "touchend";
