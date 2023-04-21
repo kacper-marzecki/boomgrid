@@ -31,6 +31,9 @@ Hooks.PanzoomHook = {
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       onTouch: function (touchEvent) {
         // the returned boolean tells the library weather to preventDefault
+        pushEvent("debug", {
+          touchEventType: touchEvent.type,
+        });
         return touchEvent.type != "touchend";
       }
     });

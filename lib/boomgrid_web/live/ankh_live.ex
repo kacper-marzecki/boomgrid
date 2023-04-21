@@ -543,6 +543,11 @@ defmodule BoomWeb.AnkhLive do
     end
   end
 
+  def handle_event("debug", payload, socket) do
+    Logger.debug(inspect(payload))
+    {:noreply, socket}
+  end
+
   def handle_info({:new_game_state, game}, socket) do
     {:noreply, socket |> assign(game: game)}
   end
