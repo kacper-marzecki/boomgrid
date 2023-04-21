@@ -25,11 +25,24 @@ import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 import "../rpgui/rpgui"
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
+function compute_token_clicked_payload(token_id, clientX, clientY) {
+  const board = document.getElementById("board");
+  const boundingRect = board.getBoundingClientRect();
+  const browserX = clientX - boundingRect.x;
+  const browserY = clientY - boundingRect.y;
+  return {
+    id: token_id,
+    x: (browserX / boundingRect.width) * 100,
+    y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
+  };
+}
+
 let Hooks = {}
 Hooks.PanzoomHook = {
   mounted() {
     const element = this.el;
-
+    const push_event = pushEvent;
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       zoomDoubleClickSpeed: 1,
       onTouch: function (touchEvent) {
@@ -37,9 +50,15 @@ Hooks.PanzoomHook = {
         // pushEvent("debug", {
         //   touchEventType: JSON.stringify(touchEvent),
         // });
-        const log = document.getElementById("debug_div");
-        log.innerText = `${touchEvent.type}\n${log.innerText}`;
-        log.innerText = `${Object.keys(touchEvent.target)}\n${log.innerText}`;
+        // const log = document.getElementById("debug_div");
+        // log.innerText = `${touchEvent.type}\n${log.innerText}`;
+        const touch = touchEvent.targetTouches[0];
+        const token_id = touch.target.id.substring("token_image".length);
+        push_event("token_clicked", compute_token_clicked_payload(token_id, touch.clientX, touch.clientY))
+        // log.innerText = `${touch.target}\n${log.innerText}`;
+        // log.innerText = `${touch.target.id}\n${log.innerText}`;
+        // log.innerText = `${touch.clientX}\n${log.innerText}`;
+        // log.innerText = `${touch.clientY}\n${log.innerText}`;
         // touchEvent.type = "custom_touchend"
         // element.dispatchEvent("custom_touchend")
         // return touchEvent.type != "touchend";

@@ -278,7 +278,9 @@ defmodule BoomWeb.AnkhLive do
       style={"position: absolute; left: #{@left}%; bottom: #{@bottom}%;  width: max-content; height: #{@height}%; #{@selected? && "background-color: white;"}"}
       phx-click={JS.push("token_clicked", value: %{target: "#{@id}"})}
     >
-      <img src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
+      <img
+      id={"token_image_#{@id}"}
+      src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
     </button>
     """
   end
