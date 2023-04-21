@@ -21,7 +21,7 @@ config :boomgrid,
 
 # Configures the endpoint
 config :boomgrid, BoomWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "0.0.0.0"],
   render_errors: [view: BoomWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: Boom.PubSub,
   live_view: [signing_salt: "xezrylLd"]
