@@ -55,22 +55,22 @@ Hooks.PanzoomHook = {
 Hooks.BoardToken = {
   mounted() {
     const token_id = this.el.id.substring("token_".length);
-    this.el.addEventListener("touchend", (event) => {
-      var board = document.getElementById("board");
-      if (board) {
-        var boundingRect = board.getBoundingClientRect();
-        var browserX = e.clientX - boundingRect.x;
-        var browserY = e.clientY - boundingRect.y;
-        pushEvent("debug", {
-          value: "touchend on BoardToken"
-        });
-        pushEvent("token_clicked", {
-          id: token_id,
-          x: (browserX / boundingRect.width) * 100,
-          y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
-        });
-      }
-    });
+    // this.el.addEventListener("touchend", (event) => {
+    //   var board = document.getElementById("board");
+    //   if (board) {
+    //     var boundingRect = board.getBoundingClientRect();
+    //     var browserX = e.clientX - boundingRect.x;
+    //     var browserY = e.clientY - boundingRect.y;
+    //     pushEvent("debug", {
+    //       value: "touchend on BoardToken"
+    //     });
+    //     pushEvent("token_clicked", {
+    //       id: token_id,
+    //       x: (browserX / boundingRect.width) * 100,
+    //       y: 100 - (browserY / boundingRect.height) * 100 // przeglądara liczy y od góry a nie od dołu
+    //     });
+    //   }
+    // });
   }
 }
 
