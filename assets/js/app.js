@@ -39,6 +39,7 @@ Hooks.PanzoomHook = {
         // });
         const log = document.getElementById("debug_div");
         log.innerText = `${touchEvent.type}\n${log.innerText}`;
+        log.innerText = `${touchEvent.target.id}\n${log.innerText}`;
         // touchEvent.type = "custom_touchend"
         // element.dispatchEvent("custom_touchend")
         // return touchEvent.type != "touchend";
