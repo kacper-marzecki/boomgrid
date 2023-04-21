@@ -57,6 +57,7 @@ Hooks.PanzoomHook = {
         } catch (error) {
           const log = document.getElementById("debug_div");
           log.innerText = `${error}\n${log.innerText}`;
+          log.innerText = `${error.stack}\n${log.innerText}`;
         }
 
         // log.innerText = `${touch.target}\n${log.innerText}`;
