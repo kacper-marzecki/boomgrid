@@ -50,11 +50,15 @@ Hooks.PanzoomHook = {
         // pushEvent("debug", {
         //   touchEventType: JSON.stringify(touchEvent),
         // });
-        // const log = document.getElementById("debug_div");
-        // log.innerText = `${touchEvent.type}\n${log.innerText}`;
-        const touch = touchEvent.targetTouches[0];
-        const token_id = touch.target.id.substring("token_image".length);
-        push_event("token_clicked", compute_token_clicked_payload(token_id, touch.clientX, touch.clientY))
+        try {
+          const touch = touchEvent.targetTouches[0];
+          const token_id = touch.target.id.substring("token_image".length);
+          push_event("token_clicked", compute_token_clicked_payload(token_id, touch.clientX, touch.clientY))
+        } catch (error) {
+          const log = document.getElementById("debug_div");
+          log.innerText = `${error}\n${log.innerText}`;
+        }
+
         // log.innerText = `${touch.target}\n${log.innerText}`;
         // log.innerText = `${touch.target.id}\n${log.innerText}`;
         // log.innerText = `${touch.clientX}\n${log.innerText}`;
