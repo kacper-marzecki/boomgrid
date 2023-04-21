@@ -34,15 +34,16 @@ Hooks.PanzoomHook = {
       zoomDoubleClickSpeed: 1,
       onTouch: function (touchEvent) {
         // the returned boolean tells the library weather to preventDefault
-        if (touchEvent.type == "touchend") {
-          pushEvent("debug", {
-            touchEventType: JSON.stringify(touchEvent),
-          });
-        }
+        // pushEvent("debug", {
+        //   touchEventType: JSON.stringify(touchEvent),
+        // });
+        const elem = document.createElement("div")
+        const text = document.createTextNode(JSON.stringify(touchEvent));
+        elem.appendChild(text);
         // touchEvent.type = "custom_touchend"
         // element.dispatchEvent("custom_touchend")
         // return touchEvent.type != "touchend";
-        return false;
+        return true;
       }
     });
 
