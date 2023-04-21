@@ -5,8 +5,7 @@ defmodule BoomWeb.AnkhLive do
 
   def render(assigns) do
     ~H"""
-    <div id="debug_div">
-    <div>
+    <div id="debug_div"></div>
     <pre style="overflow: scroll; height: 200px;">
     <%= inspect(assigns, pretty: true) %>
     </pre>
