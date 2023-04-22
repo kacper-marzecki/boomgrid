@@ -8,10 +8,10 @@ defmodule Boom.Ankh do
       money: %{},
       decks: %{
         graveyard: [],
-        events: [],
-        actions: new_cards(1..9, :action),
-        characters: [],
-        districts: [],
+        events: new_cards(0..11, :event),
+        actions: new_cards(0..100, :action),
+        characters: new_cards(0..6, :character),
+        districts: new_cards(0..11, :district),
         table: []
       },
       tokens: starting_tokens(),
@@ -22,7 +22,7 @@ defmodule Boom.Ankh do
   def new_cards(range, type) do
     for id <- range do
       %{
-        id: "#{id}",
+        id: "#{type}_#{id}",
         type: type,
         image: "/images/ankh/#{type}_#{id}.png",
         reverse_image: "/images/ankh/#{type}_reverse.png"

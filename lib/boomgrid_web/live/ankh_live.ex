@@ -114,7 +114,7 @@ defmodule BoomWeb.AnkhLive do
                   <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
                     <%!-- ZAGRAJ KARTE --%>
                     <button
-                      :if={can_play(@game, @player, card.id)}
+                      :if={can_play(@game, @player, card)}
                       type="button"
                       class="rpgui-button w-1/2"
                       phx-click={JS.push("play_card", value: %{card_id: card.id})}
@@ -278,8 +278,11 @@ defmodule BoomWeb.AnkhLive do
       phx-click={JS.push("token_clicked", value: %{target: "#{@id}"})}
     >
       <img
-      id={"token_image_#{@id}"}
-      src={@sprite_url} style="height: 100%; width: auto;" class={[@selected? && "shimmer"]} />
+        id={"token_image_#{@id}"}
+        src={@sprite_url}
+        style="height: 100%; width: auto;"
+        class={[@selected? && "shimmer"]}
+      />
     </button>
     """
   end
@@ -371,7 +374,9 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def handle_event("play_card", %{"card_id" => card_id}, socket) do
-    if can_play(socket.assigns.game, socket.assigns.player, card_id) do
+    game = socket.assigns.game
+    card = Boom.Ankh.find_card(game, card_id)
+    if can_play(game, socket.assigns.player, card) do
       Boom.GameServer.execute(socket.assigns.game_id, fn game ->
         Boom.Ankh.move_card_to_deck(game, card_id, :table)
       end)
@@ -563,9 +568,9 @@ defmodule BoomWeb.AnkhLive do
     length(players) <= 4 and !Enum.member?(players, player)
   end
 
-  def can_play(game, player, card_id) do
+  def can_play(game, player, card) do
     player_hand = game.decks[player] || []
-    Enum.find(player_hand, fn card -> card.id == card_id end)
+    Enum.member?(player_hand, card) and card.type == :action
   end
 
   def get_players(game) do

@@ -1,0 +1,180 @@
+# Untitled notebook
+
+```elixir
+Mix.install(
+  [
+    {:kino, "~> 0.7"},
+    {:image, "~> 0.28.0"},
+    {:kino_bumblebee, "~> 0.2.0"},
+    {:exla, "~> 0.5"},
+    {:kino_vega_lite, "~> 0.1.7"},
+    {:evision, "~> 0.1.28"}
+  ],
+  system_env: [
+    # optional, defaults to `true`
+    # set `EVISION_PREFER_PRECOMPILED` to `false`
+    # if you prefer `:evision` to be compiled from source
+    # note that to compile from source, you may need at least 1GB RAM
+    {"EVISION_PREFER_PRECOMPILED", true},
+
+    # optional, defaults to `true`
+    # set `EVISION_ENABLE_CONTRIB` to `false`
+    # if you don't need modules from `opencv_contrib`
+    {"EVISION_ENABLE_CONTRIB", true},
+
+    # optional, defaults to `false`
+    # set `EVISION_ENABLE_CUDA` to `true`
+    # if you wish to use CUDA related functions
+    # note that `EVISION_ENABLE_CONTRIB` also has to be `true`
+    # because cuda related modules come from the `opencv_contrib` repo
+    {"EVISION_ENABLE_CUDA", false}
+
+    # required when 
+    # - `EVISION_ENABLE_CUDA` is `true`
+    # - and `EVISION_PREFER_PRECOMPILED` is `true`
+    #
+    # set `EVISION_CUDA_VERSION` to the version that matches 
+    # your local CUDA runtime version
+    #
+    # current available versions are
+    # - 111
+    # - 114
+    # - 118
+    # {"EVISION_CUDA_VERSION", "118"},
+
+    # require for Windows users when 
+    # - `EVISION_ENABLE_CUDA` is `true`
+    # set `EVISION_CUDA_RUNTIME_DIR` to the directory that contains
+    # CUDA runtime libraries
+    # {"EVISION_CUDA_RUNTIME_DIR", "C:/PATH/TO/CUDA/RUNTIME"}
+  ],
+  config: [nx: [default_backend: EXLA.Backend]]
+)
+```
+
+## Section
+
+```elixir
+defmodule Helpers do
+  def read_scan(scan_no) do
+    id = String.pad_leading("#{scan_no}", 3, "0")
+    {:ok, image} = Image.open("/home/omnissiah/Pictures/ankh/ankh#{id}.jpg")
+
+    {:ok, frame} =
+      image
+      |> Image.to_evision()
+
+    {image, frame}
+  end
+end
+```
+
+```elixir
+file_no = 22
+page = 1
+cards_on_current_page = 3
+card_type = "event"
+{og_image, og_frame} = Helpers.read_scan(file_no)
+```
+
+```elixir
+frame = og_frame
+# frame = Evision.convertScaleAbs(og_frame, alpha: 0.5, beta: 0.1)
+# frame = Evision.gaussianBlur(frame, {1, 1}, 1000)
+
+{frame, color_frame} = Evision.decolor(frame)
+# ## Get A Binary Image
+# # import Bitwise so that we can use `|||` (bitwise or)
+import Bitwise
+
+# # # binarization
+# frame = Evision.blur(frame, {39, 39})
+# frame = Evision.gaussianBlur(frame, {11, 11}, 1000)
+# # frame = Evision.gaussianBlur(frame, {11, 11}, 1)
+{_, bw} =
+  Evision.threshold(
+    frame,
+    20,
+    255,
+    Evision.Constant.cv_THRESH_BINARY() ||| Evision.Constant.cv_THRESH_OTSU()
+  )
+
+bw
+bw = Evision.Mat.bitwise_not(bw)
+bw = Evision.blur(bw, {7, 7})
+```
+
+```elixir
+## Find All Contours in the Binary Image
+
+# Find all the contours in the thresholded image
+{contours, _} =
+  Evision.findContours(
+    bw,
+    Evision.Constant.cv_RETR_LIST(),
+    Evision.Constant.cv_CHAIN_APPROX_NONE()
+  )
+
+## Ignore Contours That Are Too Small or Too Large
+
+minimal_area = 50000
+# maximal_area = 100_000
+
+# Enum.reject(contours, fn c ->
+#   # Calculate the area of each contour
+#   area = Evision.contourArea(c)
+#   # Ignore contours that are too small or too large
+#   # (return true to reject)
+#   area < minimal_area 
+# end)
+contours =
+  Enum.sort_by(contours, fn c -> Evision.contourArea(c) end, :desc)
+  # |> Enum.drop(1)
+  |> Enum.take(cards_on_current_page)
+
+# |> Enum.map(fn c ->
+#   area = Evision.contourArea(c)
+#   IO.inspect(area)
+#   IO.inspect(c)
+#   c
+# end)
+
+IO.puts("#{Enum.count(contours)} contour(s) remains")
+contours
+```
+
+```elixir
+## Draw All Contours
+
+# color in {Blue, Green, Red}, range from 0-255
+edge_color = {0, 0, 0}
+
+# draw all contours by setting `index` to `-1`
+index = -1
+
+masked = Evision.drawContours(og_frame, contours, index, edge_color, thickness: -1)
+# |> Evision.extractChannel(0)
+
+# {:ok, masked_image} = Image.from_evision(masked)
+# masked_image
+# Image.
+# Image.add_alpha!(og_image, masked_image)
+prepped =
+  og_frame
+  |> Evision.Mat.bitwise_xor(masked)
+
+# # draw all contours on the color image
+# # Enum.reduce(contours, color_frame, fn c, fr -> 
+# # rect = Evision.boundingRect(c) |> IO.inspect(label: "RECT")
+# # Evision.rectangle(fr, rect, edge_color, thickness: 50)  
+# # end)
+contours
+|> Enum.with_index()
+|> Enum.map(fn {c, i} ->
+  {l, t, w, h} = Evision.boundingRect(c)
+  {:ok, img} = Image.from_evision(prepped)
+
+  Image.crop!(img, l, t, w, h)
+  |> Image.write("/home/omnissiah/Pictures/ankh/out/#{card_type}_#{page * 9 + i}.png")
+end)
+```
