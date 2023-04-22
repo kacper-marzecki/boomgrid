@@ -578,7 +578,7 @@ defmodule BoomWeb.AnkhLive do
 
   def can_join(game, player) do
     players = Map.keys(game.money)
-    length(players) <= 4 and !Enum.member?(players, player)
+    length(players) <= 5 and !Enum.member?(players, player)
   end
 
   def can_play(game, player, card) do
