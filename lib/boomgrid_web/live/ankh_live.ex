@@ -233,8 +233,7 @@ defmodule BoomWeb.AnkhLive do
           "
           >
             <%= for token <-@game.tokens  do %>
-              <% is_selected = match?({:token_selected, ^token}, @action) %>
-              <%= to_html(token, @viewport_anchor, @viewport_size, is_selected) %>
+              <%= to_html(token, @viewport_anchor, @viewport_size, is_selected?(@action, token)) %>
             <% end %>
           </div>
         </div>
@@ -242,6 +241,13 @@ defmodule BoomWeb.AnkhLive do
     </div>
     <script src="https://unpkg.com/panzoom@9.4.0/dist/panzoom.min.js" />
     """
+  end
+
+  def is_selected?(action, token) do
+    case action do
+      {:token_selected, selected_token} -> selected_token.id == token.id
+      _ -> false
+    end
   end
 
   def cancel_button(assigns) do
