@@ -139,7 +139,7 @@ defmodule Boom.Ankh do
   end
 
   def colors() do
-    [:blue, :red, :green, :yellow]
+    [:dotted, :blue, :red, :green, :yellow]
   end
 
   def built_in_token_types() do
@@ -157,7 +157,9 @@ defmodule Boom.Ankh do
       %{type: :red_building, sprite: %{url: "/images/ankh/red_building.png", size: 20}},
       %{type: :troll, sprite: %{url: "/images/ankh/troll.png", size: 20}},
       %{type: :yellow_agent, sprite: %{url: "/images/ankh/yellow_agent.png", size: 20}},
-      %{type: :yellow_building, sprite: %{url: "/images/ankh/yellow_building.png", size: 20}}
+      %{type: :yellow_building, sprite: %{url: "/images/ankh/yellow_building.png", size: 20}},
+      %{type: :dotted_agent, sprite: %{url: "/images/ankh/dotted_agent.png", size: 20}},
+      %{type: :dotted_building, sprite: %{url: "/images/ankh/dotted_building.png", size: 20}}
     ]
   end
 

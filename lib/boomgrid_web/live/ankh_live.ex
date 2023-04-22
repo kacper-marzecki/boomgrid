@@ -94,6 +94,18 @@ defmodule BoomWeb.AnkhLive do
                         <p><%= amount %> $</p>
                       </button>
                     </div>
+                    <div class="flex flex-row justify-around">
+                      <button
+                        :for={token_type <- tokens_player_can_place(@game, player)}
+                        type="button"
+                        class="rpgui-button"
+                        phx-click={
+                          JS.push("token_placement_token_chosen", value: %{token: token_type})
+                        }
+                      >
+                        <p><%= token_type_display_name(token_type) %></p>
+                      </button>
+                    </div>
                     <.cancel_button />
                   </div>
                 <% {:token_selected, token} -> %>
@@ -587,6 +599,14 @@ defmodule BoomWeb.AnkhLive do
     end
   end
 
+  def tokens_player_can_place(game, player) do
+    color = game.colors[player]
+
+    for token <- ["building", "agent"] do
+      String.to_existing_atom("#{color}_#{token}")
+    end
+  end
+
   def placeable_tokens(game) do
     colorful_tokens =
       for color <- Map.values(game.colors),
@@ -619,6 +639,16 @@ defmodule BoomWeb.AnkhLive do
       :demon -> "demon"
       :disturbance -> "niepokoje"
       :troll -> "troll"
+      :yellow_building -> "budynek"
+      :yellow_agent -> "agent"
+      :green_building -> "budynek"
+      :green_agent -> "agent"
+      :blue_building -> "budynek"
+      :blue_agent -> "agent"
+      :red_building -> "budynek"
+      :red_agent -> "agent"
+      :dotted_building -> "budynek"
+      :dotted_agent -> "agent"
     end
   end
 
