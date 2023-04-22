@@ -115,37 +115,12 @@ bw = Evision.blur(bw, {7, 7})
     Evision.Constant.cv_CHAIN_APPROX_NONE()
   )
 
-## Ignore Contours That Are Too Small or Too Large
-
-minimal_area = 50000
-# maximal_area = 100_000
-
-# Enum.reject(contours, fn c ->
-#   # Calculate the area of each contour
-#   area = Evision.contourArea(c)
-#   # Ignore contours that are too small or too large
-#   # (return true to reject)
-#   area < minimal_area 
-# end)
 contours =
   Enum.sort_by(contours, fn c -> Evision.contourArea(c) end, :desc)
-  # |> Enum.drop(1)
   |> Enum.take(cards_on_current_page)
-
-# |> Enum.map(fn c ->
-#   area = Evision.contourArea(c)
-#   IO.inspect(area)
-#   IO.inspect(c)
-#   c
-# end)
-
-IO.puts("#{Enum.count(contours)} contour(s) remains")
-contours
 ```
 
 ```elixir
-## Draw All Contours
-
 # color in {Blue, Green, Red}, range from 0-255
 edge_color = {0, 0, 0}
 
@@ -153,12 +128,7 @@ edge_color = {0, 0, 0}
 index = -1
 
 masked = Evision.drawContours(og_frame, contours, index, edge_color, thickness: -1)
-# |> Evision.extractChannel(0)
 
-# {:ok, masked_image} = Image.from_evision(masked)
-# masked_image
-# Image.
-# Image.add_alpha!(og_image, masked_image)
 prepped =
   og_frame
   |> Evision.Mat.bitwise_xor(masked)

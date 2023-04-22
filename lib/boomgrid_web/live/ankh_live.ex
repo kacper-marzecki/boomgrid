@@ -194,7 +194,7 @@ defmodule BoomWeb.AnkhLive do
           </div>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
             <%= for card <- @game.decks[@displayed_deck] do %>
-              <.card card={card} reverse={@displayed_deck not in [:table, @player]} />
+              <.card card={card} reverse={@displayed_deck not in [:table, @player, :districts]} />
             <% end %>
           </div>
           <%!-- Reka gracza  --%>
@@ -376,6 +376,7 @@ defmodule BoomWeb.AnkhLive do
   def handle_event("play_card", %{"card_id" => card_id}, socket) do
     game = socket.assigns.game
     card = Boom.Ankh.find_card(game, card_id)
+
     if can_play(game, socket.assigns.player, card) do
       Boom.GameServer.execute(socket.assigns.game_id, fn game ->
         Boom.Ankh.move_card_to_deck(game, card_id, :table)

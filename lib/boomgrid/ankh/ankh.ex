@@ -28,6 +28,7 @@ defmodule Boom.Ankh do
         reverse_image: "/images/ankh/#{type}_reverse.png"
       }
     end
+    |> Enum.shuffle()
   end
 
   def starting_tokens() do
