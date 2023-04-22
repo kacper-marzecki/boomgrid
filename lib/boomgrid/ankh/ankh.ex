@@ -139,10 +139,7 @@ defmodule Boom.Ankh do
   end
 
   def colors() do
-    [:dotted, :blue, :red, :green, :yellow]
-  end
-
-  def built_in_token_types() do
+    [:blue, :red, :green, :yellow, :dotted]
   end
 
   def token_types() do
