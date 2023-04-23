@@ -15,7 +15,8 @@ defmodule Boom.Ankh do
         table: []
       },
       tokens: starting_tokens(),
-      colors: %{}
+      colors: %{},
+      log: ["game started"]
     }
   end
 
@@ -39,48 +40,51 @@ defmodule Boom.Ankh do
         id: gen_id(),
         background: true
       }
-      # ,%{
-      #   sprite: %{url: "/images/action_1.png", size: 20},
-      #   position: %{x: 250, y: 250, z: 0},
-      #   id: gen_id(),
-      #   selectable: true
-      # }
     ]
   end
 
-  def place_token(game, %{} = token) do
+  def place_token(game, %{} = token, player) do
     Pathex.over!(game, path(:tokens), fn tokens ->
       [token | Enum.reverse(tokens)] |> Enum.reverse()
     end)
+    |> add_log("#{player} położył #{token.type}")
   end
 
-  def remove_token(game, id) do
+  def remove_token(game, id, player) do
     token_filter = fn token -> token.id != id end
+    token = game.tokens |> Enum.find(fn tok -> tok.id == id end)
+
     Pathex.over!(game, path(:tokens), fn tokens -> Enum.filter(tokens, token_filter) end)
+    |> add_log("#{player} usunął #{token.type}")
   end
 
-  def move_token(game, id, x, y) do
+  def move_token(game, id, x, y, player) do
     p = path(:tokens) ~> Lenses.star() ~> Lenses.matching(%{id: ^id}) ~> path(:position)
+    token = game.tokens |> Enum.find(fn tok -> tok.id == id end)
 
     Pathex.over!(game, p, fn token_position ->
       Map.merge(token_position, %{x: x, y: y})
     end)
+    |> add_log("#{player} przesunął #{token.type}")
   end
 
-  def shuffle_deck(game, deck_id) do
+  def shuffle_deck(game, deck_id, player) do
     p = path(:decks / deck_id)
+
     Pathex.over!(game, p, fn deck -> Enum.shuffle(deck) end)
+    |> add_log("#{player} potasował talię: #{deck_id}")
   end
 
-  def move_all_cards_from_deck_to_deck(game, from, to) do
+  def move_all_cards_from_deck_to_deck(game, from, to, player) do
     from_deck = Pathex.get(game, path(:decks / from))
 
     game
     |> Pathex.over!(path(:decks / to), fn deck -> from_deck ++ deck end)
     |> Pathex.set!(path(:decks / from), [])
+    |> add_log("#{player} przeniósł wszystkie karty z talii #{from} do talii #{to}")
   end
 
-  def move_n_cards_from_deck_to_deck(game, n, from, to) do
+  def move_n_cards_from_deck_to_deck(game, n, from, to, player) do
     Logger.debug("Moving #{n} cards, from #{from} to  #{to}")
     from_deck = Pathex.get(game, path(:decks / from))
     cards = Enum.take(from_deck, n)
@@ -89,13 +93,14 @@ defmodule Boom.Ankh do
     game
     |> Pathex.over!(path(:decks / to), fn deck -> cards ++ deck end)
     |> Pathex.set!(path(:decks / from), from_deck)
+    |> add_log("#{player} przeniósł #{n} kart z talii #{from} do talii #{to}")
   end
 
   def all_decks_path() do
     path(:decks) ~> Lenses.star()
   end
 
-  def move_card_to_deck(game, card_id, deck_id, position \\ "first") do
+  def move_card_to_deck(game, card_id, deck_id, position \\ "first", player) do
     # ?? Major PITA
     [[card]] =
       Pathex.get(
@@ -117,10 +122,12 @@ defmodule Boom.Ankh do
 
       List.insert_at(deck, index, card)
     end)
+    |> add_log("#{player} przeniósł kartę #{card_id} do talii #{deck_id} na pozycji #{position}")
   end
 
-  def money_change(game, player, diff) do
+  def money_change(game, player, diff, actor_player) do
     Pathex.over!(game, path(:money / player), fn money -> money + diff end)
+    |> add_log("#{actor_player} zmienił forsę gracza #{player} #{diff}$")
   end
 
   def add_player(game, player) do
@@ -133,8 +140,8 @@ defmodule Boom.Ankh do
     game
     |> Pathex.over!(path(:money), &Map.put(&1, player, 10))
     |> Pathex.over!(path(:decks), &Map.put(&1, player, []))
-    |> move_n_cards_from_deck_to_deck(5, :actions, player)
-    |> move_n_cards_from_deck_to_deck(1, :characters, player)
+    |> move_n_cards_from_deck_to_deck(5, :actions, player, player)
+    |> move_n_cards_from_deck_to_deck(1, :characters, player, player)
     |> Pathex.over!(path(:colors), &Map.put(&1, player, unused_color))
   end
 
@@ -173,11 +180,20 @@ defmodule Boom.Ankh do
 
   def gen_id(), do: System.unique_integer([:positive, :monotonic])
 
+  def add_log(game, log) do
+    Map.update!(game, :log, fn logs -> [log | logs] end)
+  end
+
   ###############################################################
 
   def find_card(game, card_id) do
     Map.values(game.decks)
     |> List.flatten()
     |> Enum.find(fn card -> card.id == card_id end)
+  end
+
+  def find_card_deck(game, card) do
+    {deck_id, _} = Enum.find(game.decks, fn {_deck_id, deck} -> card in deck end)
+    deck_id
   end
 end

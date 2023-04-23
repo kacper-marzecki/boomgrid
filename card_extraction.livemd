@@ -122,29 +122,23 @@ contours =
 
 ```elixir
 # color in {Blue, Green, Red}, range from 0-255
-edge_color = {0, 0, 0}
+edge_color = {255, 0, 0}
 
 # draw all contours by setting `index` to `-1`
 index = -1
 
-masked = Evision.drawContours(og_frame, contours, index, edge_color, thickness: -1)
+masked = Evision.drawContours(og_frame, contours, index, edge_color, thickness: 12)
 
-prepped =
-  og_frame
-  |> Evision.Mat.bitwise_xor(masked)
+# prepped =
+#   og_frame
+#   |> Evision.Mat.bitwise_xor(masked)
+# contours
+# |> Enum.with_index()
+# |> Enum.map(fn {c, i} ->
+#   {l, t, w, h} = Evision.boundingRect(c)
+#   {:ok, img} = Image.from_evision(prepped)
 
-# # draw all contours on the color image
-# # Enum.reduce(contours, color_frame, fn c, fr -> 
-# # rect = Evision.boundingRect(c) |> IO.inspect(label: "RECT")
-# # Evision.rectangle(fr, rect, edge_color, thickness: 50)  
-# # end)
-contours
-|> Enum.with_index()
-|> Enum.map(fn {c, i} ->
-  {l, t, w, h} = Evision.boundingRect(c)
-  {:ok, img} = Image.from_evision(prepped)
-
-  Image.crop!(img, l, t, w, h)
-  |> Image.write("/home/omnissiah/Pictures/ankh/out/#{card_type}_#{page * 9 + i}.png")
-end)
+#   Image.crop!(img, l, t, w, h)
+#   # |> Image.write("/home/omnissiah/Pictures/ankh/out/#{card_type}_#{page * 9 + i}.png")
+# end)
 ```

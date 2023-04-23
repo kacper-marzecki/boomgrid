@@ -5,6 +5,15 @@ defmodule BoomWeb.AnkhLive do
 
   def render(assigns) do
     ~H"""
+    <div class="rpgui-content">
+      <div
+        id="log"
+        style="position: fixed; left: 0; top: 0; background: rgba(76, 175, 80, 0.5); z-index: 999; "
+        class={"h-[200px] w-full overflow-scroll #{!@log_open && "hidden"}"}
+      >
+        <p :for={log <- @game.log}><%= log %></p>
+      </div>
+    </div>
     <div id="debug_div"></div>
     <pre style="overflow: scroll; height: 200px;">
     <%= inspect(assigns, pretty: true) %>
@@ -121,7 +130,14 @@ defmodule BoomWeb.AnkhLive do
                   </div>
                 <% {:card_view, card} -> %>
                   <div class="w-1/2">
-                    <.card class="transition hover:scale-[1.5] hover:translate-y-4" card={card} />
+                    <.card
+                      class="transition hover:scale-[1.5] hover:translate-y-4"
+                      card={card}
+                      reverse={
+                        card.type == :character and
+                          (card not in @game.decks[@player] and card not in @game.decks[:characters])
+                      }
+                    />
                   </div>
                   <div class="mx-3 flex flex-col gap-5 items-center justify-center w-1/2">
                     <%!-- ZAGRAJ KARTE --%>
@@ -328,6 +344,7 @@ defmodule BoomWeb.AnkhLive do
         socket
         |> assign(
           game: game,
+          log_open: false,
           player: player,
           game_id: game_id,
           # BOARD assigns
@@ -370,7 +387,14 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def handle_event("card_clicked", %{"card_id" => card_id}, socket) do
-    card = Boom.Ankh.find_card(socket.assigns.game, card_id)
+    %{player: player, game: game} = socket.assigns
+    card = Boom.Ankh.find_card(game, card_id)
+    deck = Boom.Ankh.find_card_deck(game, card)
+
+    if !visible_to_player?(game, card, player) do
+      add_log(socket, "#{player} podejrzał kartę #{card.id} w talii: #{deck} ")
+    end
+
     {:noreply, socket |> assign(action: {:card_view, card})}
   end
 
@@ -397,7 +421,7 @@ defmodule BoomWeb.AnkhLive do
 
     if can_play(game, socket.assigns.player, card) do
       Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-        Boom.Ankh.move_card_to_deck(game, card_id, :table)
+        Boom.Ankh.move_card_to_deck(game, card_id, :table, socket.assigns.player)
       end)
     end
 
@@ -419,7 +443,7 @@ defmodule BoomWeb.AnkhLive do
     {:move_card, card, deck} = socket.assigns.action
 
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-      Boom.Ankh.move_card_to_deck(game, card.id, deck, position)
+      Boom.Ankh.move_card_to_deck(game, card.id, deck, position, socket.assigns.player)
     end)
 
     {:noreply, socket |> assign(action: nil)}
@@ -437,7 +461,7 @@ defmodule BoomWeb.AnkhLive do
     player = String.to_existing_atom(player_string)
 
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-      Boom.Ankh.money_change(game, player, diff)
+      Boom.Ankh.money_change(game, player, diff, socket.assigns.player)
     end)
 
     {:noreply, socket}
@@ -445,7 +469,7 @@ defmodule BoomWeb.AnkhLive do
 
   def handle_event("remove_token", %{"token_id" => token_id}, socket) do
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-      Boom.Ankh.remove_token(game, token_id)
+      Boom.Ankh.remove_token(game, token_id, socket.assigns.player)
     end)
 
     {:noreply, socket |> assign(action: nil)}
@@ -469,7 +493,7 @@ defmodule BoomWeb.AnkhLive do
 
     socket =
       case {socket.assigns.action, clicked_token} do
-        {{:token_placement, token_type}, %{background: true}} ->
+        {{:token_placement, token_type}, %{background: true}} when not is_nil(token_type) ->
           token_template = Boom.Ankh.new_token(token_type)
           offset = -0.5 * token_template.sprite.size
 
@@ -484,7 +508,7 @@ defmodule BoomWeb.AnkhLive do
             })
 
           Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-            Boom.Ankh.place_token(game, new_token)
+            Boom.Ankh.place_token(game, new_token, socket.assigns.player)
           end)
 
           assign(socket, action: nil)
@@ -502,7 +526,8 @@ defmodule BoomWeb.AnkhLive do
               game,
               selected_token.id,
               target_position.x,
-              target_position.y
+              target_position.y,
+              socket.assigns.player
             )
           end)
 
@@ -522,7 +547,8 @@ defmodule BoomWeb.AnkhLive do
               game,
               selected_token.id,
               target_position.x,
-              target_position.y
+              target_position.y,
+              socket.assigns.player
             )
           end)
 
@@ -542,7 +568,7 @@ defmodule BoomWeb.AnkhLive do
 
   def handle_event("end_turn_clicked", _payload, socket) do
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-      Boom.Ankh.move_all_cards_from_deck_to_deck(game, :table, :graveyard)
+      Boom.Ankh.move_all_cards_from_deck_to_deck(game, :table, :graveyard, socket.assigns.player)
     end)
 
     {:noreply, socket}
@@ -550,7 +576,7 @@ defmodule BoomWeb.AnkhLive do
 
   def handle_event("shuffle_deck_clicked", _payload, socket) do
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
-      Boom.Ankh.shuffle_deck(game, socket.assigns.displayed_deck)
+      Boom.Ankh.shuffle_deck(game, socket.assigns.displayed_deck, socket.assigns.player)
     end)
 
     {:noreply, socket}
@@ -564,6 +590,7 @@ defmodule BoomWeb.AnkhLive do
     case key do
       "m" -> handle_event("move_clicked", nil, socket)
       "Escape" -> handle_event("cancel_clicked", nil, socket)
+      "~" -> {:noreply, assign(socket, log_open: !socket.assigns.log_open)}
       _ -> {:noreply, socket}
     end
   end
@@ -603,6 +630,10 @@ defmodule BoomWeb.AnkhLive do
       :character -> [:characters]
       :district -> [:districts]
     end
+  end
+
+  def visible_to_player?(game, card, player) do
+    card in game.decks[player] or card.type in [:districts]
   end
 
   def tokens_player_can_place(game, player) do
@@ -659,6 +690,12 @@ defmodule BoomWeb.AnkhLive do
   end
 
   def gen_id(), do: System.unique_integer([:positive, :monotonic])
+
+  def add_log(socket, log) do
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.add_log(game, log)
+    end)
+  end
 
   def starting_tokens() do
     [
