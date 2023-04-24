@@ -216,7 +216,7 @@ defmodule BoomWeb.AnkhLive do
           <%!-- Reka gracza  --%>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
             <%= for card <- @game.decks[@player] || [] do %>
-              <.card card={card} />
+              <.card card={card} reverse={card.type  in [:character]} />
             <% end %>
           </div>
         </div>
