@@ -22,7 +22,6 @@ defmodule BoomWeb.GamesLive do
         <Rpgui.text_button text="Ankh-Morpork" phx-click={JS.push("new_game", value: %{game: :ankh})} />
         <Rpgui.text_button
           text="mapa eksperyment"
-          class="golden"
           phx-click={JS.push("new_game", value: %{game: :mapa})}
         />
       </div>

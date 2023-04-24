@@ -26,6 +26,8 @@ defmodule BoomWeb.CoreComponents do
   slot :inner_block, required: true
 
   def modal(assigns) do
+    id = "log"
+
     ~H"""
     <div
       id={@id}

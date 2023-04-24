@@ -19,7 +19,6 @@ defmodule BoomWeb.AnkhLive do
         <p :for={log <- @game.log}><%= log %></p>
       </div>
       <div
-        id="log"
         style="position: fixed; left: 0; top: 0; background: rgba(76, 175, 80, 0.5); z-index: 998; "
         class={"h-[200px] w-full overflow-scroll #{!@game_state_open? && "hidden"}"}
       >
@@ -32,7 +31,6 @@ defmodule BoomWeb.AnkhLive do
         </pre>
       </div>
     </div>
-
     <div class="rpgui-content" phx-window-keyup="key_clicked">
       <div class="flex flex-row h-screen  w-screen ">
         <div class="framed flex flex-col justify-center w-1/2 h-full ">
@@ -145,13 +143,13 @@ defmodule BoomWeb.AnkhLive do
                     <Rpgui.text_button
                       :if={can_play(@game, @player, card)}
                       text="Zagraj"
-                      class="w-1/2"
+                      class="w-full"
                       phx-click={JS.push("play_card", value: %{card_id: card.id})}
                     />
                     <%!-- PRZENIEŚ KARTE --%>
                     <Rpgui.text_button
                       text="Przenieś"
-                      class="w-1/2"
+                      class="w-full"
                       phx-click={JS.push("move_card", value: %{card_id: card.id})}
                     />
                     <.cancel_button />
@@ -165,7 +163,7 @@ defmodule BoomWeb.AnkhLive do
                     <Rpgui.text_button
                       :for={deck <- what_decks_can_it_move_to?(card)}
                       text={deck_display_name(deck)}
-                      class="w-1/2"
+                      class="w-full"
                       phx-click={JS.push("card_move_target_chosen", value: %{deck_id: deck})}
                     />
                     <.cancel_button />
@@ -184,7 +182,7 @@ defmodule BoomWeb.AnkhLive do
                         ]
                       }
                       text={position_text}
-                      class="w-1/2"
+                      class="w-full"
                       phx-click={
                         JS.push("card_move_target_position_chosen", value: %{position: position})
                       }
