@@ -72,12 +72,12 @@ inside your html file.
   font-size: 1.0em;
   /* default size and display */
   max-width: 100%;
-  min-width: 140px;
+  /* min-width: 140px; */
   height: 60px;
   display: inline-block;
   /* padding */
-  padding-left: 35px;
-  padding-right: 35px;
+  padding-left: 2em;
+  padding-right: 2em;
 }
 
 /* button hover */
@@ -121,6 +121,10 @@ inside your html file.
   padding-left: 35px;
   padding-right: 35px;
   overflow: visible;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+  justify-content: space-between;
 }
 
 /* button hover */
@@ -161,7 +165,7 @@ inside your html file.
   background-size: 100% 100%;
   margin: 0 0 0 0;
   right: 0px;
-  float: right;
+  /* float: right; */
   margin-right: -46px;
   margin-top: -5%;
 }

@@ -18,13 +18,18 @@
     </script>
   </head>
   <body>
-          <ul>
-            Cześć <%= @current_user %> :)
-            <li><%= link("LiveDashboard", to: Routes.live_dashboard_path(@conn, :home)) %></li>
-            <%!-- <li><%= link("Wyloguj sie", to: "/session/delete") %></li> --%>
-            <li ><%= link("games", to: "/games") %></li>
-            <li><%= link("sprites", to: "/sprites") %></li>
-          </ul>
+    <div class="rpgui-content framed flex flex-row items-center">
+      <p>Cześć <%= @current_user %> :)</p>
+      <BoomWeb.Components.Rpgui.text_button
+        text="LiveDashboard"
+        phx-click={Phoenix.LiveView.JS.navigate(Routes.live_dashboard_path(@conn, :home))} />
+      <BoomWeb.Components.Rpgui.text_button
+        text="Games"
+        phx-click={Phoenix.LiveView.JS.navigate("/games")} />
+      <BoomWeb.Components.Rpgui.text_button
+        text="Sprites"
+        phx-click={Phoenix.LiveView.JS.navigate("/sprites")} />
+    </div>
     <%= @inner_content %>
   </body>
 </html>

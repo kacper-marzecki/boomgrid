@@ -193,3 +193,7 @@
 .rpgui-content * {
   image-rendering: unset;
 }
+
+.selectable_text {
+  user-select: text !important;
+}

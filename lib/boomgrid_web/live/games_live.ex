@@ -1,11 +1,12 @@
 defmodule BoomWeb.GamesLive do
   use BoomWeb, :live_view
+  alias BoomWeb.Components.Rpgui
 
   alias Phoenix.LiveView.JS
 
   def render(assigns) do
     ~H"""
-    <div class="rpgui-content framed w-1/2 text-left">
+    <div class="rpgui-content framed w-1/2 text-left ">
       <ul>
         <li :for={game <- @games}>
           <%= game %> | <button phx-click="go_to_game" phx-value-game_id={game}>go to</button>
@@ -13,27 +14,18 @@ defmodule BoomWeb.GamesLive do
         </li>
       </ul>
       <h3>START NEW GAME:</h3>
-      <button
-        phx-click={JS.push("new_game", value: %{game: :boom})}
-        type="button"
-        class="rpgui-button"
-      >
-        ><p>Boomgrid gierka eksperyment</p>
-      </button>
-      <button
-        phx-click={JS.push("new_game", value: %{game: :ankh})}
-        type="button"
-        class="rpgui-button"
-      >
-        ><p>Ankh-Morpork</p>
-      </button>
-      <button
-        phx-click={JS.push("new_game", value: %{game: :mapa})}
-        type="button"
-        class="rpgui-button"
-      >
-        ><p>mapa eksperyment</p>
-      </button>
+      <div class="flex flex-row gap-3">
+        <Rpgui.text_button
+          text="Boomgrid gierka eksperyment"
+          phx-click={JS.push("new_game", value: %{game: :boom})}
+        />
+        <Rpgui.text_button text="Ankh-Morpork" phx-click={JS.push("new_game", value: %{game: :ankh})} />
+        <Rpgui.text_button
+          text="mapa eksperyment"
+          class="golden"
+          phx-click={JS.push("new_game", value: %{game: :mapa})}
+        />
+      </div>
     </div>
     """
   end

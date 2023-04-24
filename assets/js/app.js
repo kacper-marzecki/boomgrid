@@ -45,15 +45,9 @@ Hooks.PanzoomHook = {
     window[`panzoom_${this.el.id}`] = panzoom(this.el, {
       zoomDoubleClickSpeed: 1,
       onTouch: function (touchEvent) {
-        try {
-          const touch = touchEvent.targetTouches[0];
-          const token_id = touch.target.id.substring("token_image_".length);
-          push_event("token_clicked", compute_token_clicked_payload(token_id, touch.clientX, touch.clientY))
-        } catch (error) {
-          const log = document.getElementById("debug_div");
-          log.innerText = `${error}\n${log.innerText}`;
-          log.innerText = `${error.stack}\n${log.innerText}`;
-        }
+        const touch = touchEvent.targetTouches[0];
+        const token_id = touch.target.id.substring("token_image_".length);
+        push_event("token_clicked", compute_token_clicked_payload(token_id, touch.clientX, touch.clientY))
         return true;
       }
     });
