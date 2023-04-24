@@ -92,7 +92,6 @@ defmodule BoomWeb.AnkhLive do
                     <Rpgui.text_button
                       :if={!Enum.empty?(@game.decks[:table])}
                       text="Koniec tury"
-                      data-confirm={"Potasować #{deck_display_name(@displayed_deck)}?"}
                       class="w-full"
                       phx-click={JS.push("end_turn_clicked")}
                     />
