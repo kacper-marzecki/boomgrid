@@ -210,13 +210,18 @@ defmodule BoomWeb.AnkhLive do
           </div>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
             <%= for card <- @game.decks[@displayed_deck] do %>
-              <.card card={card} reverse={@displayed_deck not in [:table, @player, :districts]} />
+              <.card
+                card={card}
+                reverse={
+                  @displayed_deck not in [:table, @player, :districts] or card.type in [:character]
+                }
+              />
             <% end %>
           </div>
           <%!-- Reka gracza  --%>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
             <%= for card <- @game.decks[@player] || [] do %>
-              <.card card={card} reverse={card.type  in [:character]} />
+              <.card card={card} reverse={card.type in [:character]} />
             <% end %>
           </div>
         </div>

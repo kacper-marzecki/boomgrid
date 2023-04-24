@@ -23,7 +23,7 @@ defmodule Boom.Ankh do
   def new_cards(range, type) do
     for id <- range do
       %{
-        id: "#{type}_#{id}",
+        id: "#{type}_#{gen_id()}",
         type: type,
         image: "/images/ankh/#{type}_#{id}.png",
         reverse_image: "/images/ankh/#{type}_reverse.png"
