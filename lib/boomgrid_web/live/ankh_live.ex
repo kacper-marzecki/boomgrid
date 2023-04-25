@@ -15,6 +15,7 @@ defmodule BoomWeb.AnkhLive do
         class={"h-[200px] w-full overflow-scroll #{!@console_open? && "hidden"}"}
       >
         <Rpgui.text_button class="float-right" phx-click={JS.push("toggle_console_open")} text="X" />
+        <Rpgui.text_button class="float-right" phx-click={JS.push("roll_dice")} text="⚄" />
 
         <p :for={log <- @game.log}><%= log %></p>
       </div>
@@ -90,6 +91,11 @@ defmodule BoomWeb.AnkhLive do
                       phx-click={JS.push("shuffle_deck_clicked")}
                     />
                     <Rpgui.text_button
+                      text="dobierz"
+                      class="w-full"
+                      phx-click={JS.push("draw_card_clicked")}
+                    />
+                    <Rpgui.text_button
                       :if={!Enum.empty?(@game.decks[:table])}
                       text="Koniec tury"
                       class="w-full"
@@ -133,7 +139,7 @@ defmodule BoomWeb.AnkhLive do
                       card={card}
                       reverse={
                         card.type == :character and
-                          (card not in @game.decks[@player] and card not in @game.decks[:characters])
+                          card not in (@game.decks[@player] ++ @game.decks[:characters])
                       }
                     />
                   </div>
@@ -144,6 +150,13 @@ defmodule BoomWeb.AnkhLive do
                       text="Zagraj"
                       class="w-full"
                       phx-click={JS.push("play_card", value: %{card_id: card.id})}
+                    />
+                    <%!--  KUP BUDYNEK --%>
+                    <Rpgui.text_button
+                      :if={card.type == :district}
+                      text="Kup"
+                      class="w-full"
+                      phx-click={JS.push("buy_building_clicked", value: %{card_id: card.id})}
                     />
                     <%!-- PRZENIEŚ KARTE --%>
                     <Rpgui.text_button
@@ -209,18 +222,19 @@ defmodule BoomWeb.AnkhLive do
             <p><%= deck_display_name(@displayed_deck) %></p>
           </div>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
-            <%= for card <- @game.decks[@displayed_deck] do %>
+            <%= for card <- prepare_deck_for_display(@game, @displayed_deck) do %>
               <.card
                 card={card}
                 reverse={
-                  @displayed_deck not in [:table, @player, :districts] or card.type in [:character]
+                  card.type == :character or
+                    (card.type == :action and @displayed_deck != @player and @displayed_deck != :table)
                 }
               />
             <% end %>
           </div>
-          <%!-- Reka gracza  --%>
+          <%!-- REKA GRACZA  --%>
           <div class="whitespace-nowrap overflow-x-scroll h-[20%]">
-            <%= for card <- @game.decks[@player] || [] do %>
+            <%= for card <-( @game.decks[@player] || []) |> hand_for_display() do %>
               <.card card={card} reverse={card.type in [:character]} />
             <% end %>
           </div>
@@ -399,11 +413,24 @@ defmodule BoomWeb.AnkhLive do
   def handle_event("player_clicked", %{"player" => player_string}, socket) do
     case socket.assigns.action do
       {:move_card, card, nil} when not is_nil(card) ->
-        handle_event("card_move_target_chosen", %{"deck_id" => player_string}, socket)
+        {:noreply, socket} =
+          handle_event("card_move_target_chosen", %{"deck_id" => player_string}, socket)
+
+        handle_event("card_move_target_position_chosen", %{"position" => "last"}, socket)
 
       _ ->
         player = String.to_existing_atom(player_string)
-        {:noreply, socket |> assign(displayed_deck: player, action: {:player_selected, player})}
+
+        socket = socket |> assign(action: {:player_selected, player})
+
+        socket =
+          if socket.assigns.player != player do
+            socket |> assign(displayed_deck: player)
+          else
+            socket
+          end
+
+        {:noreply, socket}
     end
   end
 
@@ -558,6 +585,32 @@ defmodule BoomWeb.AnkhLive do
     {:noreply, socket}
   end
 
+  def handle_event("draw_card_clicked", _payload, socket) do
+    player = socket.assigns.player
+
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.move_n_cards_from_deck_to_deck(game, 1, :actions, player, player)
+    end)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("buy_building_clicked", %{"card_id" => card_id}, socket) do
+    %{type: :district} = Boom.Ankh.find_card(socket.assigns.game, card_id)
+
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.move_card_to_deck(
+        game,
+        card_id,
+        socket.assigns.player,
+        "first",
+        socket.assigns.player
+      )
+    end)
+
+    {:noreply, socket |> assign(action: nil, displayed_deck: :table)}
+  end
+
   def handle_event("end_turn_clicked", _payload, socket) do
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
       Boom.Ankh.move_all_cards_from_deck_to_deck(game, :table, :graveyard, socket.assigns.player)
@@ -606,6 +659,14 @@ defmodule BoomWeb.AnkhLive do
 
   def handle_event("toggle_game_state_open", _, socket) do
     {:noreply, assign(socket, game_state_open?: !socket.assigns.game_state_open?)}
+  end
+
+  def handle_event("roll_dice", _, socket) do
+    Boom.GameServer.execute(socket.assigns.game_id, fn game ->
+      Boom.Ankh.add_log(game, "Rzut kością: #{:rand.uniform(12)}")
+    end)
+
+    {:noreply, socket}
   end
 
   def handle_event("debug", payload, socket) do
@@ -708,6 +769,29 @@ defmodule BoomWeb.AnkhLive do
     Boom.GameServer.execute(socket.assigns.game_id, fn game ->
       Boom.Ankh.add_log(game, log)
     end)
+  end
+
+  def is_user_hand(game, deck) do
+    deck in get_players(game)
+  end
+
+  def prepare_deck_for_display(game, displayed_deck) do
+    if is_user_hand(game, displayed_deck) do
+      hand_for_display(game.decks[displayed_deck])
+      |> drop_cards(:character)
+      |> IO.inspect()
+    else
+      game.decks[displayed_deck]
+    end
+  end
+
+  def hand_for_display(deck) do
+    priority = [:character, :district, :action]
+    Enum.sort_by(deck, fn card -> Enum.find_index(priority, fn p -> p == card.type end) end)
+  end
+
+  def drop_cards(deck, card_type) do
+    Enum.filter(deck, fn card -> card.type != card_type end)
   end
 
   def starting_tokens() do
