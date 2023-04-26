@@ -26,11 +26,13 @@ defmodule BoomWeb.UserSessionController do
 
       conn
       |> Plug.Conn.put_session(:current_user, username)
+      |> Plug.Conn.put_session(:sid, claims["sid"])
       |> Plug.Conn.put_session(:live_socket_id, "users_sessions:#{Base.url_encode64(code)}")
       |> redirect(to: "/")
     else
       other ->
         IO.inspect(other, label: "OTHER AUTH RESPONSE")
+
         conn
         |> redirect(to: "/")
     end
@@ -48,7 +50,6 @@ defmodule BoomWeb.UserSessionController do
 
   def delete(conn, _params) do
     conn
-    |> put_flash(:info, "Logged out successfully.")
     |> UserAuth.log_out_user()
   end
 end

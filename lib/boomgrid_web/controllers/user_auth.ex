@@ -33,9 +33,14 @@ defmodule BoomWeb.UserAuth do
       BoomWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
+    sid = get_session(conn, :sid)
+
     conn
     |> renew_session()
-    |> redirect(to: "/")
+    |> redirect(
+      external:
+        "https://keycloak.fubar.online/auth/realms/boomgrid/protocol/openid-connect/logout?client_id=#{sid}&post_logout_redirect_uri=https://boomgrid.fubar.online"
+    )
   end
 
   @doc """

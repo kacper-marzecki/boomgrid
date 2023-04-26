@@ -29,6 +29,9 @@
       <BoomWeb.Components.Rpgui.text_button
         text="Sprites"
         phx-click={Phoenix.LiveView.JS.navigate("/sprites")} />
+      <BoomWeb.Components.Rpgui.text_button
+        text="logout"
+        phx-click={Phoenix.LiveView.JS.navigate("/session/delete")} />
     </div>
     <%= @inner_content %>
   </body>
