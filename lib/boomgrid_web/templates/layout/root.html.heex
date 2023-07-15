@@ -20,6 +20,9 @@
   <body>
     <div class="rpgui-content framed flex flex-row items-center">
       <p>Cześć <%= @current_user %> :)</p>
+      <%!-- <%= if Mix.env == :dev do %>
+      <%= live_render(@conn, Boomgrid.UserSession.MockUser) %>
+      <% end %> --%>
       <BoomWeb.Components.Rpgui.text_button
         text="LiveDashboard"
         phx-click={Phoenix.LiveView.JS.navigate(Routes.live_dashboard_path(@conn, :home))} />

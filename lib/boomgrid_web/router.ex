@@ -34,6 +34,7 @@ defmodule BoomWeb.Router do
     get("/", PageController, :index)
     live "/board", BoardLive
     live "/ankh/:game_id", AnkhLive
+    live "/amazonki/:game_id", AmazonkiLive
     live "/sprites", SpritesLive
     live "/games", GamesLive
     live "/game/:game_id", GameLive
@@ -41,9 +42,12 @@ defmodule BoomWeb.Router do
 
   if Mix.env() == :dev do
     def set_mock_user(conn, _opts) do
+      mock_user = "mock#{Boom.Id.gen_id()}"
+      user = Plug.Conn.get_session(conn, :current_user) || mock_user
+
       conn
-      |> Plug.Conn.assign(:current_user, "mock")
-      |> Plug.Conn.put_session(:current_user, "mock")
+      |> Plug.Conn.assign(:current_user, user)
+      |> Plug.Conn.put_session(:current_user, user)
     end
   end
 end

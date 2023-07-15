@@ -20,6 +20,7 @@ defmodule BoomWeb.GamesLive do
           phx-click={JS.push("new_game", value: %{game: :boom})}
         />
         <Rpgui.text_button text="Ankh-Morpork" phx-click={JS.push("new_game", value: %{game: :ankh})} />
+        <Rpgui.text_button text="Amazonki" phx-click={JS.push("new_game", value: %{game: :amazonki})} />
         <Rpgui.text_button
           text="mapa eksperyment"
           phx-click={JS.push("new_game", value: %{game: :mapa})}
@@ -44,12 +45,14 @@ defmodule BoomWeb.GamesLive do
       case game_type do
         "ankh" ->
           {:ok, game_id} = Boom.GameServer.start_new_game("ankh", Boom.Ankh.new_game())
-
           goto_ankh_morpork(socket, game_id)
+
+        "amazonki" ->
+          {:ok, game_id} = Boom.GameServer.start_new_game("amazonki", Boom.Amazonki.new_game())
+          goto_amazonki(socket, game_id)
 
         "boom" ->
           {:ok, game_id} = Boom.LegacyGameServer.start_new_game()
-
           goto_boomgrid(socket, game_id)
 
         "mapa" ->
@@ -68,6 +71,9 @@ defmodule BoomWeb.GamesLive do
         String.contains?(game_id, "ankh") ->
           goto_ankh_morpork(socket, game_id)
 
+        String.contains?(game_id, "amazonki") ->
+          goto_amazonki(socket, game_id)
+
         String.contains?(game_id, "boomgrid") ->
           goto_boomgrid(socket, game_id)
       end
@@ -79,6 +85,13 @@ defmodule BoomWeb.GamesLive do
     redirect(
       socket,
       to: BoomWeb.Router.Helpers.live_path(socket, BoomWeb.AnkhLive, game_id)
+    )
+  end
+
+  def goto_amazonki(socket, game_id) do
+    redirect(
+      socket,
+      to: BoomWeb.Router.Helpers.live_path(socket, BoomWeb.AmazonkiLive, game_id)
     )
   end
 
