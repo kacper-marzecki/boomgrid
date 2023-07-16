@@ -47,31 +47,43 @@ defmodule BoomWeb.AmazonkiLive do
         <div class="framed flex flex-col justify-center w-full h-full ">
           <%!-- UI  --%>
           <div class="flex h-full">
-            <%!-- GRACZE  --%>
-            <div class="framed-grey w-[20%]">
-              <p>Role: <%= @game.player_roles[@player] %></p>
+            <div class="framed-grey w-[30%]">
+              <div class=" h-[30%]">
+                <p :if={@game.round > 0}>Role: <%= @game.player_roles[@player] %></p>
 
-              <p>Round: <%= @game.round %></p>
-              <table class="table-auto w-full text-center text-white">
-                <thead>
-                  <tr>
-                    <th>empty</th>
-                    <th>trap</th>
-                    <th>gold</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><%= Boom.Amazonki.count_open_doors(@game, :empty) %></td>
-                    <td><%= Boom.Amazonki.count_open_doors(@game, :trap) %></td>
-                    <td><%= Boom.Amazonki.count_open_doors(@game, :gold) %></td>
-                  </tr>
-                </tbody>
-              </table>
-              <p :for={log <- @game.log}><%= log %></p>
+                <p :if={@game.round > 0}>Round: <%= @game.round %></p>
+                <table :if={@game.round > 0} class="table-auto w-full text-center text-white">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>empty</th>
+                      <th>trap</th>
+                      <th>gold</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Found</td>
+                      <td><%= Boom.Amazonki.count_open_doors(@game, :empty) %></td>
+                      <td><%= Boom.Amazonki.count_open_doors(@game, :trap) %></td>
+                      <td><%= Boom.Amazonki.count_open_doors(@game, :gold) %></td>
+                    </tr>
+                    <tr>
+                      <td>Hand</td>
+                      <td><%= Boom.Amazonki.count_player_doors(@game, @player, :empty) %></td>
+                      <td><%= Boom.Amazonki.count_player_doors(@game, @player, :trap) %></td>
+                      <td><%= Boom.Amazonki.count_player_doors(@game, @player, :gold) %></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="overflow-y-scroll h-[70%]">
+                <p :for={log <- @game.log}><%= log %></p>
+              </div>
             </div>
             <%!-- OPCJE --%>
-            <div class="framed-grey w-[80%] h-full flex flex-row justify-around">
+            <div class="framed-grey w-[70%] h-full flex flex-row justify-around">
               <%= case {@game.winner, @game.round} do %>
                 <% {nil, 0} -> %>
                   <Rpgui.text_button

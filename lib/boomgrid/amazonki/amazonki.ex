@@ -101,7 +101,7 @@ defmodule Boom.Amazonki do
     end)
     |> Map.put(:chosen_cards, [card | game.chosen_cards])
     |> Map.put(:key_holder, player)
-    |> add_log("#{player} opened door: #{card}")
+    |> add_log("#{key_holder} trusted #{player}: #{card}")
     |> case do
       game ->
         if length(game.chosen_cards) > 0 and
@@ -142,6 +142,10 @@ defmodule Boom.Amazonki do
 
   def count_open_doors(game, type) do
     game.chosen_cards |> Enum.count(fn card -> card == type end)
+  end
+
+  def count_player_doors(game, player, type) do
+    game.player_cards |> Map.get(player) |> Enum.count(fn card -> card == type end)
   end
 
   def add_log(game, log) do
