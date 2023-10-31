@@ -760,6 +760,10 @@ defmodule BoomWeb.AnkhLive do
       :red_agent -> "agent"
       :dotted_building -> "budynek"
       :dotted_agent -> "agent"
+      :hlined_building -> "budynek"
+      :hlined_agent -> "agent"
+      :vlined_building -> "budynek"
+      :vlined_agent -> "agent"
     end
   end
 

@@ -146,24 +146,28 @@ defmodule Boom.Ankh do
   end
 
   def colors() do
-    [:blue, :red, :green, :yellow, :dotted]
+    [:blue, :red, :green, :yellow, :dotted, :hlined, :vlined]
   end
 
   def token_types() do
     [
       %{type: :blue_agent, sprite: %{url: "/images/ankh/blue_agent.png", size: 20}},
-      %{type: :blue_building, sprite: %{url: "/images/ankh/blue_building.png", size: 20}},
+      %{type: :blue_building, sprite: %{url: "/images/ankh/blue_building.png", size: 30}},
       %{type: :demon, sprite: %{url: "/images/ankh/demon.png", size: 20}},
       %{type: :disturbance, sprite: %{url: "/images/ankh/disturbance.png", size: 20}},
       %{type: :green_agent, sprite: %{url: "/images/ankh/green_agent.png", size: 20}},
-      %{type: :green_building, sprite: %{url: "/images/ankh/green_building.png", size: 20}},
+      %{type: :green_building, sprite: %{url: "/images/ankh/green_building.png", size: 30}},
       %{type: :red_agent, sprite: %{url: "/images/ankh/red_agent.png", size: 20}},
-      %{type: :red_building, sprite: %{url: "/images/ankh/red_building.png", size: 20}},
+      %{type: :red_building, sprite: %{url: "/images/ankh/red_building.png", size: 30}},
       %{type: :troll, sprite: %{url: "/images/ankh/troll.png", size: 20}},
       %{type: :yellow_agent, sprite: %{url: "/images/ankh/yellow_agent.png", size: 20}},
-      %{type: :yellow_building, sprite: %{url: "/images/ankh/yellow_building.png", size: 20}},
+      %{type: :yellow_building, sprite: %{url: "/images/ankh/yellow_building.png", size: 30}},
       %{type: :dotted_agent, sprite: %{url: "/images/ankh/dotted_agent.png", size: 20}},
-      %{type: :dotted_building, sprite: %{url: "/images/ankh/dotted_building.png", size: 20}}
+      %{type: :dotted_building, sprite: %{url: "/images/ankh/dotted_building.png", size: 30}},
+      %{type: :hlined_agent, sprite: %{url: "/images/ankh/hlined_agent.png", size: 20}},
+      %{type: :hlined_building, sprite: %{url: "/images/ankh/hlined_building.png", size: 30}},
+      %{type: :vlined_agent, sprite: %{url: "/images/ankh/vlined_agent.png", size: 20}},
+      %{type: :vlined_building, sprite: %{url: "/images/ankh/vlined_building.png", size: 30}}
     ]
   end
 
