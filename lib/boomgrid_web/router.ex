@@ -35,6 +35,7 @@ defmodule BoomWeb.Router do
     live "/board", BoardLive
     live "/ankh/:game_id", AnkhLive
     live "/amazonki/:game_id", AmazonkiLive
+    live "/bang/:game_id", BangLive
     live "/sprites", SpritesLive
     live "/games", GamesLive
     live "/game/:game_id", GameLive
