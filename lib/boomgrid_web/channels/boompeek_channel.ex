@@ -10,8 +10,8 @@ defmodule BoomWeb.BoompeekChannel do
     {:noreply, socket}
   end
 
-  def handle_in("jump", msg, socket) do
-    broadcast!(socket, "jump", msg |> Map.put("username", socket.assigns.username))
+  def handle_in(event, msg, socket) do
+    broadcast!(socket, event, msg |> Map.put("username", socket.assigns.username))
     {:noreply, socket}
   end
 end
